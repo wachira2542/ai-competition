@@ -69,6 +69,26 @@ export const getAllEvaluations = async (req: AuthRequest, res: Response, next: N
   }
 };
 
+// GET /api/evaluations/me
+// Gets all evaluations made by the CURRENT logged in user
+export const getMyEvaluations = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const db = await getDb();
+    const rows = queryAll(db, 'SELECT * FROM evaluations WHERE user_id = ?', [userId]);
+    
+    res.json({ success: true, data: rows.map(parseEvaluation) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 // GET /api/evaluations/:projectId
 // Only gets the evaluation of the CURRENT logged in user (judges getting their own scores)
 export const getEvaluationByProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {

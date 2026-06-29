@@ -38,6 +38,14 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
         <p className="panel-subtitle">เลือกผลงานของกลุ่มบริษัท AAPICO เพื่อทำการประเมิน</p>
       </div>
 
+      {/* TOP: Score */}
+      <div className="score-summary-top" style={{ textAlign: 'center', marginBottom: '12px', padding: '12px', background: 'var(--bg)', border: '2px solid var(--navy)' }}>
+        <p className="score-label">TOTAL EVALUATION SCORE</p>
+        <div className="score-display" style={{ marginBottom: 0 }}>
+          {currentTotal} <span className="score-max">/ 100</span>
+        </div>
+      </div>
+
       {/* Project Selector */}
       <div className="form-group">
         <label className="form-label">Select Company &amp; Project</label>
@@ -67,18 +75,6 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
             <p className="meta-value">{selectedProject.name}</p>
           </div>
           <div className="meta-item">
-            <span className="meta-tag">Objective</span>
-            <p className="meta-desc">{selectedProject.objective}</p>
-          </div>
-          <div className="meta-item">
-            <span className="meta-tag">AI Tech Stack</span>
-            <p className="meta-mono">{selectedProject.tech_stack}</p>
-          </div>
-          <div className="meta-item">
-            <span className="meta-tag">Target Users</span>
-            <p className="meta-desc">{selectedProject.target_users}</p>
-          </div>
-          <div className="meta-item">
             <span className="meta-tag">Status</span>
             <div className="status-badge-wrap">
               {isEvaluated ? (
@@ -103,29 +99,29 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
         <textarea
           id="feedback-textarea"
           className="form-textarea"
-          rows={3}
+          rows={2}
           placeholder="โปรดระบุความคิดเห็นหรือข้อแนะนำที่เป็นประโยชน์เพิ่มเติม..."
           value={comment}
           onChange={(e) => onCommentChange(e.target.value)}
         />
       </div>
 
-      {/* Score + Save */}
-      <div className="score-summary">
-        <div>
-          <p className="score-label">TOTAL EVALUATION SCORE</p>
-          <div className="score-display">
-            {currentTotal} <span className="score-max">/ 100</span>
-          </div>
+      {/* Save Button */}
+      <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '2px dashed var(--light-gray)' }}>
+        <p style={{ textAlign: 'center', color: 'var(--navy)', fontWeight: 700, fontSize: '14px', marginBottom: '12px' }}>
+          เมื่อลงคะแนนครบทุกหัวข้อแล้ว<br/>กรุณากดปุ่ม Save ด้านล่างนี้
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            id="save-btn"
+            onClick={onSave}
+            disabled={saving}
+            className="save-btn animate-pulse-slight"
+            style={{ width: '100%', maxWidth: '300px', borderRadius: '8px', fontSize: '18px', padding: '16px', backgroundColor: 'var(--green)', color: 'var(--black)', border: 'none', boxShadow: '0 4px 12px rgba(45,200,77,0.3)' }}
+          >
+            {saving ? '⏳ กำลังบันทึก...' : '💾 SAVE EVALUATION'}
+          </button>
         </div>
-        <button
-          id="save-btn"
-          onClick={onSave}
-          disabled={saving}
-          className="save-btn"
-        >
-          {saving ? '⏳ Saving...' : '💾 Save Evaluation'}
-        </button>
       </div>
     </div>
   );

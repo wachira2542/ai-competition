@@ -13,7 +13,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const db = await getDb();
-    const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+    const stmt = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)');
     stmt.bind([username]);
     const userRow = stmt.step() ? stmt.getAsObject() : null;
     stmt.free();

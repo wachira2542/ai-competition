@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, ClipboardList } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'score' | 'dashboard';
@@ -13,8 +13,8 @@ const Header: React.FC<HeaderProps> = ({ evaluatedCount, totalCount }) => {
     <header className="app-header">
       <div className="header-inner">
         <div className="header-brand">
-          <div className="brand-icon">
-            <Star size={22} />
+          <div className="brand-icon" style={{ background: 'transparent', padding: 0, boxShadow: 'none' }}>
+            <img src="/logo.png" alt="AAPICO Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 className="brand-title">

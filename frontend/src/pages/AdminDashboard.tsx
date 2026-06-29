@@ -12,6 +12,8 @@ export default function AdminDashboard() {
   const { logout, user } = useAuth();
   
   const [selectedProject, setSelectedProject] = useState<string>('');
+  const [dashboardState, setDashboardState] = useState<'idle' | 'counting' | 'revealed'>('idle');
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   useEffect(() => {
     if (activeProjectId && !selectedProject) {
@@ -49,6 +51,16 @@ export default function AdminDashboard() {
           <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>AAPICO Judge Admin</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px' }}>
+          {dashboardState === 'revealed' && (
+            <button 
+              onClick={() => setResetTrigger(prev => prev + 1)}
+              style={{ padding: '6px 14px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              🔄 กลับหน้าหลัก
+            </button>
+          )}
           <span>Admin: <strong>{user?.username}</strong></span>
           <button 
             onClick={logout}
@@ -60,33 +72,10 @@ export default function AdminDashboard() {
       </header>
 
       {/* Admin Controls */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--light-gray)', padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
-        <button 
-          onClick={async () => {
-            if (window.confirm('Are you sure you want to CLEAR ALL evaluation data? This cannot be undone!')) {
-              try {
-                const res = await fetch('/api/admin/clear-evaluations', {
-                  method: 'DELETE',
-                  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-                const json = await res.json();
-                if (json.success) {
-                  alert('All data cleared successfully.');
-                  refetch(); // Reload data
-                  // force full page reload to clear pushed states cleanly
-                  window.location.reload();
-                }
-              } catch (e) {
-                alert('Failed to clear data');
-              }
-            }
-          }}
-          style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', borderRadius: '4px' }}
-        >
-          Clear Data
-        </button>
+      {dashboardState !== 'revealed' && (
+        <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--light-gray)', padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
 
-        <div style={{ flex: 1, maxWidth: '400px' }}>
+          <div style={{ flex: 1, maxWidth: '400px' }}>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--navy)', textTransform: 'uppercase', marginBottom: '8px' }}>
             Set Active Project for Judges
           </label>
@@ -125,14 +114,40 @@ export default function AdminDashboard() {
           Push to Judges Screen
         </button>
         
-        <div style={{ marginLeft: 'auto', backgroundColor: '#e3f2fd', padding: '10px 16px', borderRadius: '4px', border: '1px solid #bbdefb', color: '#1565c0', fontSize: '14px' }}>
-          Currently Active: <strong>{activeProjectId ? activeProjectId : 'None'}</strong>
+        <button 
+          onClick={async () => {
+            if (window.confirm('Are you sure you want to CLEAR ALL evaluation data? This cannot be undone!')) {
+              try {
+                const res = await fetch('/api/admin/clear-evaluations', {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                const json = await res.json();
+                if (json.success) {
+                  alert('All data cleared successfully.');
+                  refetch(); // Reload data
+                  // force full page reload to clear pushed states cleanly
+                  window.location.reload();
+                }
+              } catch (e) {
+                alert('Failed to clear data');
+              }
+            }
+          }}
+          style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', borderRadius: '4px' }}
+        >
+          Clear Data
+        </button>
+        
+          <div style={{ marginLeft: 'auto', backgroundColor: '#e3f2fd', padding: '10px 16px', borderRadius: '4px', border: '1px solid #bbdefb', color: '#1565c0', fontSize: '14px' }}>
+            Currently Active: <strong>{activeProjectId ? activeProjectId : 'None'}</strong>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Dashboard Area */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <Dashboard projects={projects} evaluations={evaluations} />
+        <Dashboard projects={projects} evaluations={evaluations} onRevealChange={setDashboardState} resetTrigger={resetTrigger} />
       </div>
     </div>
   );

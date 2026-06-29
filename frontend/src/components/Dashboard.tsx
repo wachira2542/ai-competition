@@ -7,12 +7,15 @@ import confetti from 'canvas-confetti';
 interface DashboardProps {
   projects: Project[];
   evaluations: Record<string, Evaluation>;
+  onRevealChange?: (state: RevealState) => void;
+  resetTrigger?: number;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
+const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealChange, resetTrigger }) => {
   const [revealState, setRevealState] = useState<RevealState>('idle');
   const [countdown, setCountdown] = useState(3);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'overall' | 'judges'>('overall');
 
   const leaderboard = useMemo<ProjectWithEvaluation[]>(() => {
     const results = projects.map((project) => {
@@ -23,6 +26,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
         totalScore: evalData ? evalData.total_score : 0,
         scores: evalData ? evalData.scores : null,
         comment: evalData ? evalData.comment : '-',
+        details: evalData ? evalData.details : undefined,
       };
     });
     return results.sort((a, b) => b.totalScore - a.totalScore);
@@ -106,37 +110,62 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
     }
   }, [revealState]);
 
+  useEffect(() => {
+    if (onRevealChange) {
+      onRevealChange(revealState);
+    }
+  }, [revealState, onRevealChange]);
+
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0) {
+      setRevealState('idle');
+      setCountdown(3);
+    }
+  }, [resetTrigger]);
+
   if (revealState === 'idle') {
     return (
       <div className="reveal-idle">
-        <div className="reveal-icon-box">
-          <BarChart3 size={72} className="reveal-icon" />
+        <div className="waiting-pulse">
+          <BarChart3 size={56} className="waiting-icon" />
         </div>
         <div className="reveal-text">
           <h2 className="reveal-title">Evaluation Results</h2>
-          <p className="reveal-subtitle">
-            Evaluated <strong>{evaluatedCount}</strong> of {projects.length} Projects
-          </p>
+          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="dot-pulse"></span>
+              กำลังรอทางคณะกรรมการสรุปผลคะแนน...
+            </p>
+            <p className="reveal-subtitle" style={{ fontSize: '16px', marginTop: '0' }}>
+              (ประเมินแล้ว <strong>{evaluatedCount}</strong> จากทั้งหมด {projects.length} โครงการ)
+            </p>
+          </div>
         </div>
         <button
           id="reveal-btn"
           onClick={startReveal}
           disabled={evaluatedCount === 0}
           className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
+          style={{ marginTop: '16px' }}
         >
           <Play fill="currentColor" size={28} /> แสดงผลคะแนน (Reveal)
         </button>
-        {evaluatedCount === 0 && (
-          <p className="reveal-hint">Please evaluate at least one project.</p>
-        )}
       </div>
     );
   }
 
   if (revealState === 'counting') {
     return (
-      <div className="countdown-screen">
-        <div className="countdown-number">{countdown}</div>
+      <div className="countdown-screen-grand">
+        <div className="countdown-rings">
+          <div className="ring ring-1"></div>
+          <div className="ring ring-2"></div>
+          <div className="ring ring-3"></div>
+        </div>
+        <div className="countdown-content">
+          <h2 className="countdown-title">PREPARING RESULTS</h2>
+          <div key={countdown} className="countdown-number-grand">{countdown}</div>
+        </div>
       </div>
     );
   }
@@ -150,19 +179,19 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
       label: 'Winner (รางวัลชนะเลิศ)',
       bgClass: 'podium-gold',
       iconColor: '#FFD700',
-      order: 'md:order-2',
+      rankClass: 'podium-rank-1',
     },
     {
       label: 'Runner Up (รองชนะเลิศ อันดับ 1)',
       bgClass: 'podium-silver',
       iconColor: '#C0C0C0',
-      order: 'md:order-1',
+      rankClass: 'podium-rank-2',
     },
     {
       label: '2nd Runner Up (รองชนะเลิศ อันดับ 2)',
       bgClass: 'podium-bronze',
       iconColor: '#CD7F32',
-      order: 'md:order-3',
+      rankClass: 'podium-rank-3',
     },
   ];
 
@@ -170,18 +199,36 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
     <div className="results-container">
 
       {/* Hero */}
-      <div className="results-hero">
+      <div className="results-hero" style={{ position: 'relative' }}>
         <h1 className="results-hero-title">Innovation Excellence Awards</h1>
         <p className="results-hero-sub">Official Results &amp; Rankings</p>
         <p className="results-hero-congrats">ขอแสดงความยินดีกับผลงานที่ได้รับรางวัลทุกทีม!</p>
       </div>
 
-      {/* Top 3 Podium */}
+      {/* Tabs */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '-24px', position: 'relative', zIndex: 10 }}>
+        <button 
+          onClick={() => setActiveTab('overall')}
+          style={{ padding: '12px 32px', borderRadius: '30px', fontWeight: 600, border: 'none', cursor: 'pointer', backgroundColor: activeTab === 'overall' ? 'var(--green)' : 'white', color: activeTab === 'overall' ? 'var(--navy)' : 'var(--dark)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+        >
+          🏆 ภาพรวมคะแนน (Overall Results)
+        </button>
+        <button 
+          onClick={() => setActiveTab('judges')}
+          style={{ padding: '12px 32px', borderRadius: '30px', fontWeight: 600, border: 'none', cursor: 'pointer', backgroundColor: activeTab === 'judges' ? 'var(--navy)' : 'white', color: activeTab === 'judges' ? 'white' : 'var(--dark)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+        >
+          📝 รายละเอียดคะแนนรายกรรมการ (Judge Details)
+        </button>
+      </div>
+
+      {activeTab === 'overall' && (
+        <>
+          {/* Top 3 Podium */}
       <div className="podium-grid">
         {top3.map((project, index) => {
           const meta = rankMeta[index];
           return (
-            <div key={project.id} className={`podium-card ${meta.bgClass} ${meta.order} animate-slide-up`}>
+            <div key={project.id} className={`podium-card ${meta.bgClass} ${meta.rankClass} animate-slide-up`}>
               <Trophy size={56} style={{ color: meta.iconColor }} className="podium-trophy" />
               <span className="podium-rank-label">{meta.label}</span>
               <h3 className="podium-team">{project.team}</h3>
@@ -360,8 +407,12 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
           </div>
         </div>
       </div>
+      </>
+      )}
+
       {/* Judge Activity Section */}
-      <div className="standings-section animate-fade-in" style={{ marginTop: '48px' }}>
+      {activeTab === 'judges' && (
+      <div className="standings-section animate-fade-in" style={{ marginTop: '32px' }}>
         <div className="standings-card">
           <div className="standings-header" style={{ backgroundColor: 'var(--dark)' }}>
             <h2 className="standings-title">
@@ -419,6 +470,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
           </div>
         </div>
       </div>
+      )}
 
     </div>
   );

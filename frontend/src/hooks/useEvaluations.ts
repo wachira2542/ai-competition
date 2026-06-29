@@ -28,12 +28,13 @@ export function useEvaluations() {
   const [evaluations, setEvaluations] = useState<Record<string, Evaluation>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   const fetchAll = useCallback(() => {
     if (!token) return;
     setLoading(true);
-    fetch(`${API_BASE}/evaluations`, {
+    const endpoint = user?.role === 'user' ? `${API_BASE}/evaluations/me` : `${API_BASE}/evaluations`;
+    fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store'
     })
@@ -51,7 +52,7 @@ export function useEvaluations() {
       })
       .catch(() => setError('Failed to load evaluations'))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, user?.role]);
 
   useEffect(() => {
     fetchAll();

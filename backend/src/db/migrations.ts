@@ -1,8 +1,6 @@
 import { Database } from 'sql.js';
 import { getDb, persistDb } from './database';
 
-const AAPICO_COMPANIES = ['AA', 'AF', 'APC', 'ASP', 'AH', 'AHP', 'AHA', 'AHT', 'AL', 'AS', 'AP', 'AHR', 'APR'];
-
 interface ProjectSeed {
   id: string;
   name: string;
@@ -12,24 +10,29 @@ interface ProjectSeed {
   target_users: string;
 }
 
-const INITIAL_PROJECTS: ProjectSeed[] = AAPICO_COMPANIES.flatMap((company) => [
-  {
-    id: `${company}-1`,
-    name: 'AI-Powered Process Optimization',
-    team: company,
-    objective: 'ลดขั้นตอนและระยะเวลาการทำงานในกระบวนการผลิตด้วยโมเดลวิเคราะห์ข้อมูลเชิงทำนาย',
-    tech_stack: 'Python, TensorFlow, Scikit-learn, AWS GreenGrass',
-    target_users: `ฝ่ายผลิตและฝ่ายควบคุมคุณภาพของ ${company}`,
-  },
-  {
-    id: `${company}-2`,
-    name: 'Computer Vision Quality Inspection',
-    team: company,
-    objective: 'ตรวจจับรอยตำหนิชิ้นส่วนอะไหล่แบบเรียลไทม์ด้วยกล้อง AI แทนสายตามนุษย์เพื่อความแม่นยำ 99.9%',
-    tech_stack: 'OpenCV, PyTorch, YOLOv8, Industrial Edge Device',
-    target_users: `วิศวกรฝ่ายผลิตและทีมตรวจสอบความคุ้มค่า ${company}`,
-  },
-]);
+const rawProjects = [
+  { id: 'AH:1', name: 'AI Camera Inspection for Line TBAS', team: 'AH' },
+  { id: 'AH:2', name: 'AH Press line 4 (Ghost line)', team: 'AH' },
+  { id: 'AHP:1', name: 'Smart M365 Learning portal', team: 'AHP' },
+  { id: 'AHP:2', name: 'AI Camera Cira Core', team: 'AHP' },
+  { id: 'AHA:1', name: 'AI-BASED LASER MACHINE BOOKING SYSTEM', team: 'AHA' },
+  { id: 'AHA:2', name: 'SMART 3D STORE MANAGEMENT SYSTEM', team: 'AHA' },
+  { id: 'AHT:1', name: 'SMART CNC MACHINE PLANNING', team: 'AHT' },
+  { id: 'AHT:2', name: 'AI-SPECIAL CAM UNIT', team: 'AHT' },
+  { id: 'APC:1', name: 'AI Meeting Minutes & Action Tracking Assistant', team: 'APC' },
+  { id: 'AS:1', name: 'AI-powered Feasibility Assistant for Fast Decision Making', team: 'AS' },
+  { id: 'AF:1', name: 'E-Work Permit', team: 'AF' },
+  { id: 'AF:2', name: 'Smart AI Safety Vision System', team: 'AF' },
+  { id: 'ASP:1', name: 'AI สรุปรายงาน PM Jigs อัตโนมัติ', team: 'ASP' },
+  { id: 'AA:1', name: 'AI analysis tool', team: 'AA' }
+];
+
+const INITIAL_PROJECTS: ProjectSeed[] = rawProjects.map(p => ({
+  ...p,
+  objective: '',
+  tech_stack: '',
+  target_users: ''
+}));
 
 export async function runMigrations(): Promise<void> {
   const db = await getDb();
@@ -91,22 +94,17 @@ export async function runMigrations(): Promise<void> {
     )
   `);
 
-  // Seed projects if empty
-  const result = db.exec('SELECT COUNT(*) as c FROM projects');
-  const count = result[0]?.values[0][0] as number;
+  // Always attempt to insert any new projects (existing ones will be ignored)
+  const stmt = db.prepare(`
+    INSERT OR IGNORE INTO projects (id, name, team, objective, tech_stack, target_users)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
 
-  if (!count || count === 0) {
-    const stmt = db.prepare(`
-      INSERT OR IGNORE INTO projects (id, name, team, objective, tech_stack, target_users)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const p of INITIAL_PROJECTS) {
-      stmt.run([p.id, p.name, p.team, p.objective, p.tech_stack, p.target_users]);
-    }
-    stmt.free();
-    console.log(`✅ Seeded ${INITIAL_PROJECTS.length} projects`);
+  for (const p of INITIAL_PROJECTS) {
+    stmt.run([p.id, p.name, p.team, p.objective, p.tech_stack, p.target_users]);
   }
+  stmt.free();
+  console.log(`✅ Ensured ${INITIAL_PROJECTS.length} projects are seeded`);
 
   // Seed Users if empty
   const userCountRes = db.exec('SELECT COUNT(*) as c FROM users');
@@ -124,6 +122,17 @@ export async function runMigrations(): Promise<void> {
     stmt.free();
     console.log('✅ Seeded 4 users (1 admin, 3 judges)');
   }
+
+  // Add specific judges
+  const crypto = require('crypto');
+  const hash = (pass: string) => crypto.createHash('sha256').update(pass).digest('hex');
+  const userStmt = db.prepare('INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)');
+  userStmt.run(['Sattha.p', hash('aapico@001'), 'user']);
+  userStmt.run(['Saranyoo.k', hash('aapico@002'), 'user']);
+  userStmt.run(['Pitchawat.t', hash('aapico@003'), 'user']);
+  userStmt.run(['Soknath.m', hash('aapico@004'), 'user']);
+  userStmt.free();
+  console.log('✅ Ensured specific judges are added');
 
   persistDb(db);
   console.log('✅ Database migrations completed');
