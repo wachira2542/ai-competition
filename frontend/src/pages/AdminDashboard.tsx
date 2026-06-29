@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useProjects, useEvaluations } from '../hooks/useEvaluations';
 import { useActiveProject } from '../hooks/useActiveProject';
 import Dashboard from '../components/Dashboard';

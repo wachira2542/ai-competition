@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, ClipboardList, BarChart3 } from 'lucide-react';
+import { Star, ClipboardList } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'score' | 'dashboard';
@@ -8,7 +8,7 @@ interface HeaderProps {
   totalCount: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, evaluatedCount, totalCount }) => {
+const Header: React.FC<HeaderProps> = ({ evaluatedCount, totalCount }) => {
   return (
     <header className="app-header">
       <div className="header-inner">
