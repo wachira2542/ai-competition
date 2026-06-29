@@ -1,0 +1,427 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { BarChart3, Trophy, Play } from 'lucide-react';
+import type { Project, Evaluation, ProjectWithEvaluation, RevealState, ScoreMap } from '../types';
+import { CRITERIA } from '../constants/data';
+import confetti from 'canvas-confetti';
+
+interface DashboardProps {
+  projects: Project[];
+  evaluations: Record<string, Evaluation>;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations }) => {
+  const [revealState, setRevealState] = useState<RevealState>('idle');
+  const [countdown, setCountdown] = useState(3);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+
+  const leaderboard = useMemo<ProjectWithEvaluation[]>(() => {
+    const results = projects.map((project) => {
+      const evalData = evaluations[project.id];
+      return {
+        ...project,
+        isEvaluated: !!evalData,
+        totalScore: evalData ? evalData.total_score : 0,
+        scores: evalData ? evalData.scores : null,
+        comment: evalData ? evalData.comment : '-',
+      };
+    });
+    return results.sort((a, b) => b.totalScore - a.totalScore);
+  }, [projects, evaluations]);
+
+  const evaluationsByJudge = useMemo(() => {
+    const map: Record<string, { project: Project; scores: ScoreMap; total: number }[]> = {};
+    leaderboard.forEach(project => {
+      if (project.details) {
+        project.details.forEach(detail => {
+          if (!map[detail.username]) {
+            map[detail.username] = [];
+          }
+          map[detail.username].push({
+            project,
+            scores: detail.scores,
+            total: detail.total_score,
+          });
+        });
+      }
+    });
+    return map;
+  }, [leaderboard]);
+
+  const startReveal = () => {
+    setRevealState('counting');
+    setCountdown(3);
+    let current = 3;
+    const timer = setInterval(() => {
+      current -= 1;
+      if (current > 0) {
+        setCountdown(current);
+      } else {
+        clearInterval(timer);
+        setRevealState('revealed');
+      }
+    }, 1000);
+  };
+
+  const evaluatedCount = Object.keys(evaluations).length;
+
+  useEffect(() => {
+    if (revealState === 'revealed') {
+      const duration = 8 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({
+          ...defaults, 
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#1D366D', '#2DC84D', '#FFD700', '#C0C0C0', '#CD7F32']
+        });
+        confetti({
+          ...defaults, 
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#1D366D', '#2DC84D', '#FFD700', '#C0C0C0', '#CD7F32']
+        });
+      }, 250);
+
+      // Initial big burst
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#1D366D', '#2DC84D', '#FFD700', '#C0C0C0', '#CD7F32']
+      });
+
+      return () => clearInterval(interval);
+    }
+  }, [revealState]);
+
+  if (revealState === 'idle') {
+    return (
+      <div className="reveal-idle">
+        <div className="reveal-icon-box">
+          <BarChart3 size={72} className="reveal-icon" />
+        </div>
+        <div className="reveal-text">
+          <h2 className="reveal-title">Evaluation Results</h2>
+          <p className="reveal-subtitle">
+            Evaluated <strong>{evaluatedCount}</strong> of {projects.length} Projects
+          </p>
+        </div>
+        <button
+          id="reveal-btn"
+          onClick={startReveal}
+          disabled={evaluatedCount === 0}
+          className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
+        >
+          <Play fill="currentColor" size={28} /> แสดงผลคะแนน (Reveal)
+        </button>
+        {evaluatedCount === 0 && (
+          <p className="reveal-hint">Please evaluate at least one project.</p>
+        )}
+      </div>
+    );
+  }
+
+  if (revealState === 'counting') {
+    return (
+      <div className="countdown-screen">
+        <div className="countdown-number">{countdown}</div>
+      </div>
+    );
+  }
+
+  const evaluatedProjects = leaderboard.filter((p) => p.isEvaluated);
+  const top3 = evaluatedProjects.slice(0, 3);
+  const consolation = evaluatedProjects.slice(3, 10);
+
+  const rankMeta = [
+    {
+      label: 'Winner (รางวัลชนะเลิศ)',
+      bgClass: 'podium-gold',
+      iconColor: '#FFD700',
+      order: 'md:order-2',
+    },
+    {
+      label: 'Runner Up (รองชนะเลิศ อันดับ 1)',
+      bgClass: 'podium-silver',
+      iconColor: '#C0C0C0',
+      order: 'md:order-1',
+    },
+    {
+      label: '2nd Runner Up (รองชนะเลิศ อันดับ 2)',
+      bgClass: 'podium-bronze',
+      iconColor: '#CD7F32',
+      order: 'md:order-3',
+    },
+  ];
+
+  return (
+    <div className="results-container">
+
+      {/* Hero */}
+      <div className="results-hero">
+        <h1 className="results-hero-title">Innovation Excellence Awards</h1>
+        <p className="results-hero-sub">Official Results &amp; Rankings</p>
+        <p className="results-hero-congrats">ขอแสดงความยินดีกับผลงานที่ได้รับรางวัลทุกทีม!</p>
+      </div>
+
+      {/* Top 3 Podium */}
+      <div className="podium-grid">
+        {top3.map((project, index) => {
+          const meta = rankMeta[index];
+          return (
+            <div key={project.id} className={`podium-card ${meta.bgClass} ${meta.order} animate-slide-up`}>
+              <Trophy size={56} style={{ color: meta.iconColor }} className="podium-trophy" />
+              <span className="podium-rank-label">{meta.label}</span>
+              <h3 className="podium-team">{project.team}</h3>
+              <p className="podium-project-name">{project.name}</p>
+              <div className="podium-score-wrap">
+                <span className="podium-score">{project.totalScore.toFixed(2)}</span>
+                <span className="podium-score-unit">PTS</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Honorable Mentions */}
+      {consolation.length > 0 && (
+        <div className="honorable-section animate-fade-in">
+          <div className="honorable-header">
+            <h3 className="honorable-title">Honorable Mentions (รางวัลชมเชย 7 อันดับ)</h3>
+          </div>
+          <div className="honorable-grid">
+            {consolation.map((project, index) => (
+              <div key={project.id} className="honorable-card">
+                <div className="honorable-rank">{index + 4}</div>
+                <div className="honorable-info">
+                  <div className="honorable-team">{project.team}</div>
+                  <div className="honorable-name">{project.name}</div>
+                </div>
+                <div className="honorable-score-wrap">
+                  <div className="honorable-score">{project.totalScore.toFixed(2)}</div>
+                  <span className="honorable-score-unit">PTS</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Full Standings Table */}
+      <div className="standings-section animate-fade-in">
+        <div className="standings-card">
+          <div className="standings-header">
+            <h2 className="standings-title">
+              <BarChart3 size={20} /> Complete Standings (ตารางสรุปผลทั้งหมด)
+            </h2>
+          </div>
+          <div className="standings-table-wrap">
+            <table className="standings-table">
+              <thead>
+                <tr className="standings-thead-row">
+                  <th className="standings-th standings-th--center">Rank</th>
+                  <th className="standings-th">Team / Project</th>
+                  {CRITERIA.map((c) => (
+                    <th key={c.id} className="standings-th standings-th--center" title={c.name}>
+                      {c.name}<br/>
+                      <span style={{ fontSize: '9px', fontWeight: 'normal', color: 'var(--muted)' }}>(Max {c.maxScore})</span>
+                    </th>
+                  ))}
+                  <th className="standings-th standings-th--center">Total Score</th>
+                  <th className="standings-th">Feedback</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((project, index) => {
+                  const rankClass =
+                    project.isEvaluated && index === 0
+                      ? 'standings-row standings-row--gold'
+                      : project.isEvaluated && index === 1
+                      ? 'standings-row standings-row--silver'
+                      : project.isEvaluated && index === 2
+                      ? 'standings-row standings-row--bronze'
+                      : 'standings-row';
+
+                  const rankDisplay = project.isEvaluated ? (
+                    index === 0 ? (
+                      <span className="rank-trophy rank-trophy--gold">
+                        <Trophy size={16} /> 1
+                      </span>
+                    ) : index === 1 ? (
+                      <span className="rank-trophy rank-trophy--silver">
+                        <Trophy size={16} /> 2
+                      </span>
+                    ) : index === 2 ? (
+                      <span className="rank-trophy rank-trophy--bronze">
+                        <Trophy size={16} /> 3
+                      </span>
+                    ) : (
+                      <span>{index + 1}</span>
+                    )
+                  ) : (
+                    '-'
+                  );
+
+                  const isExpanded = expandedRows.includes(project.id);
+                  const hasDetails = project.details && project.details.length > 0;
+
+                  return (
+                    <React.Fragment key={project.id}>
+                      <tr 
+                        className={rankClass} 
+                        style={{ cursor: hasDetails ? 'pointer' : 'default' }}
+                        onClick={() => {
+                          if (hasDetails) {
+                            setExpandedRows(prev => prev.includes(project.id) ? prev.filter(id => id !== project.id) : [...prev, project.id]);
+                          }
+                        }}
+                      >
+                        <td className="standings-td standings-td--center">{rankDisplay}</td>
+                        <td className="standings-td">
+                          <div className="standings-team" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {project.team}
+                            {hasDetails && (
+                              <span style={{ fontSize: '10px', backgroundColor: 'var(--light-gray)', padding: '2px 6px', borderRadius: '4px' }}>
+                                {project.details!.length} Judges {isExpanded ? '▼' : '▶'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="standings-project">{project.name}</div>
+                        </td>
+                        {CRITERIA.map((c) => (
+                          <td key={c.id} className="standings-td standings-td--center" style={{ fontWeight: 600, color: 'var(--dark)' }}>
+                            {project.isEvaluated && project.scores && project.scores[c.id] !== undefined
+                              ? Number(project.scores[c.id])
+                              : '-'}
+                          </td>
+                        ))}
+                        <td className="standings-td standings-td--center">
+                          {project.isEvaluated ? (
+                            <span className="score-pill">{project.totalScore.toFixed(2)}</span>
+                          ) : (
+                            <span className="score-pending">Pending</span>
+                          )}
+                        </td>
+                        <td className="standings-td">
+                          <div className="standings-comment" title={project.comment}>
+                            {project.isEvaluated && project.comment ? project.comment : '-'}
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && hasDetails && (
+                        <tr style={{ backgroundColor: '#f8fafc' }}>
+                          <td colSpan={1} />
+                          <td colSpan={CRITERIA.length + 3} style={{ padding: '16px' }}>
+                            <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                              <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--navy)', marginBottom: '12px', marginTop: 0 }}>Detailed Scores by Judge</h4>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--muted)' }}>Judge</th>
+                                    {CRITERIA.map(c => <th key={c.id} style={{ textAlign: 'center', padding: '8px', color: 'var(--muted)' }}>{c.id.toUpperCase()}</th>)}
+                                    <th style={{ textAlign: 'center', padding: '8px', color: 'var(--muted)' }}>Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {project.details!.map((detail) => (
+                                    <tr key={detail.username} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                      <td style={{ padding: '8px', fontWeight: 500 }}>{detail.username}</td>
+                                      {CRITERIA.map(c => (
+                                        <td key={c.id} style={{ textAlign: 'center', padding: '8px' }}>
+                                          {detail.scores[c.id] !== undefined ? detail.scores[c.id] : '-'}
+                                        </td>
+                                      ))}
+                                      <td style={{ textAlign: 'center', padding: '8px', fontWeight: 600 }}>{detail.total_score}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {/* Judge Activity Section */}
+      <div className="standings-section animate-fade-in" style={{ marginTop: '48px' }}>
+        <div className="standings-card">
+          <div className="standings-header" style={{ backgroundColor: 'var(--dark)' }}>
+            <h2 className="standings-title">
+              <Play size={20} style={{ transform: 'rotate(90deg)' }} /> Judge Evaluation Tasks (สรุปการประเมินแยกตามกรรมการ)
+            </h2>
+          </div>
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {Object.keys(evaluationsByJudge).length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--muted)' }}>No evaluations yet.</p>
+            ) : (
+              Object.entries(evaluationsByJudge).map(([judgeName, tasks]) => (
+                <div key={judgeName} style={{ border: '1px solid var(--light-gray)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div style={{ backgroundColor: 'var(--bg)', padding: '16px', borderBottom: '1px solid var(--light-gray)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      👤 กรรมการ: {judgeName}
+                    </h3>
+                    <span style={{ fontSize: '13px', fontWeight: 600, backgroundColor: 'var(--navy)', color: 'white', padding: '4px 10px', borderRadius: '12px' }}>
+                      ประเมินแล้ว {tasks.length} โครงการ
+                    </span>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="standings-table" style={{ borderTop: 'none' }}>
+                      <thead>
+                        <tr className="standings-thead-row">
+                          <th className="standings-th">Project</th>
+                          {CRITERIA.map(c => <th key={c.id} className="standings-th standings-th--center">{c.id.toUpperCase()}</th>)}
+                          <th className="standings-th standings-th--center">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tasks.map(task => (
+                          <tr key={task.project.id} className="standings-row">
+                            <td className="standings-td" style={{ minWidth: '200px' }}>
+                              <div style={{ fontWeight: 600, color: 'var(--black)' }}>{task.project.team}</div>
+                              <div style={{ fontSize: '12px', color: 'var(--dark)' }}>{task.project.name}</div>
+                            </td>
+                            {CRITERIA.map(c => (
+                              <td key={c.id} className="standings-td standings-td--center">
+                                {task.scores[c.id] !== undefined ? task.scores[c.id] : '-'}
+                              </td>
+                            ))}
+                            <td className="standings-td standings-td--center">
+                              <span className="score-pill" style={{ backgroundColor: 'var(--green)', color: 'white' }}>
+                                {task.total.toFixed(2)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default Dashboard;
