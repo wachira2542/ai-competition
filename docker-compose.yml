@@ -18,10 +18,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: aapico_frontend
+    container_name: ai-competition-app
     restart: always
-    ports:
-      - "80:80"
     depends_on:
       - backend
     networks:
