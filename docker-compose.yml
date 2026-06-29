@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aapico_backend
+    restart: always
+    environment:
+      - PORT=3001
+    volumes:
+      - backend_data:/app/data
+    networks:
+      - proxy-tier
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aapico_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - proxy-tier
+
+volumes:
+  backend_data:
+
+networks:
+  proxy-tier:
+    external: true
+    name: global-proxy-net
