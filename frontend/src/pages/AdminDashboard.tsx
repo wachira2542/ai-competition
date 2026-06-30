@@ -2,18 +2,26 @@ import { useState, useEffect } from 'react';
 import { useProjects, useEvaluations } from '../hooks/useEvaluations';
 import { useActiveProject } from '../hooks/useActiveProject';
 import Dashboard from '../components/Dashboard';
+import JudgeProgressModal from '../components/JudgeProgressModal';
+import AddJudgeModal from '../components/AddJudgeModal';
 import { useAuth } from '../context/AuthContext';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, Users, UserPlus } from 'lucide-react';
+import type { RevealState } from '../types';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const { projects, loading: projectsLoading } = useProjects();
   const { evaluations, refetch } = useEvaluations();
   const { activeProjectId, pushedProjects, setActive, loading: activeLoading } = useActiveProject();
   const { logout, user } = useAuth();
   
   const [selectedProject, setSelectedProject] = useState<string>('');
-  const [dashboardState, setDashboardState] = useState<'idle' | 'counting' | 'revealed'>('idle');
+  const [dashboardState, setDashboardState] = useState<RevealState>('idle');
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [isJudgeModalOpen, setIsJudgeModalOpen] = useState(false);
+  const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
 
   useEffect(() => {
     if (activeProjectId && !selectedProject) {
@@ -48,43 +56,50 @@ export default function AdminDashboard() {
       <header style={{ backgroundColor: 'var(--navy)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Settings size={24} color="var(--green)" />
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>AAPICO Judge Admin</h1>
+          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>{t('admin.title')}</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px' }}>
-          {dashboardState === 'revealed' && (
+          {dashboardState !== 'idle' && (
             <button 
               onClick={() => setResetTrigger(prev => prev + 1)}
               style={{ padding: '6px 14px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              🔄 กลับหน้าหลัก
+              🔄 {t('admin.backToMain')}
             </button>
           )}
+          <button 
+            onClick={() => setIsAddJudgeModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '6px 12px', cursor: 'pointer', borderRadius: '4px', fontWeight: 700 }}
+          >
+            <UserPlus size={16} /> {t('admin.addJudge')}
+          </button>
           <span>Admin: <strong>{user?.username}</strong></span>
+          <LanguageSelector />
           <button 
             onClick={logout}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '6px 12px', cursor: 'pointer', borderRadius: '4px' }}
           >
-            <LogOut size={16} /> Logout
+            <LogOut size={16} /> {t('admin.logout')}
           </button>
         </div>
       </header>
 
       {/* Admin Controls */}
-      {dashboardState !== 'revealed' && (
+      {dashboardState === 'idle' && (
         <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--light-gray)', padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
 
           <div style={{ flex: 1, maxWidth: '400px' }}>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--navy)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Set Active Project for Judges
+            {t('admin.setActiveProject')}
           </label>
           <select 
             value={selectedProject} 
             onChange={(e) => setSelectedProject(e.target.value)}
             style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid var(--light-gray)' }}
           >
-            <option value="">-- None (Waiting) --</option>
+            <option value="">{t('admin.waiting')}</option>
             {projects.map(p => (
               <option key={p.id} value={p.id}>
                 {pushedProjects.includes(p.id) ? '✓ ' : ''}{p.id}: {p.name}
@@ -111,12 +126,20 @@ export default function AdminDashboard() {
           id="push-btn"
           style={{ padding: '10px 24px', backgroundColor: 'var(--navy)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', transition: 'background-color 0.3s', borderRadius: '4px' }}
         >
-          Push to Judges Screen
+          {t('admin.pushToJudges')}
+        </button>
+
+        <button 
+          onClick={() => setIsJudgeModalOpen(true)}
+          style={{ padding: '10px 24px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'background-color 0.3s', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <Users size={18} />
+          {t('admin.viewJudgeProgress')}
         </button>
         
         <button 
           onClick={async () => {
-            if (window.confirm('Are you sure you want to CLEAR ALL evaluation data? This cannot be undone!')) {
+            if (window.confirm(t('admin.clearConfirm'))) {
               try {
                 const res = await fetch('/api/admin/clear-evaluations', {
                   method: 'DELETE',
@@ -136,11 +159,11 @@ export default function AdminDashboard() {
           }}
           style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', borderRadius: '4px' }}
         >
-          Clear Data
+          {t('admin.clearData')}
         </button>
         
           <div style={{ marginLeft: 'auto', backgroundColor: '#e3f2fd', padding: '10px 16px', borderRadius: '4px', border: '1px solid #bbdefb', color: '#1565c0', fontSize: '14px' }}>
-            Currently Active: <strong>{activeProjectId ? activeProjectId : 'None'}</strong>
+            {t('admin.currentlyActive')}: <strong>{activeProjectId ? activeProjectId : t('admin.none')}</strong>
           </div>
         </div>
       )}
@@ -149,6 +172,25 @@ export default function AdminDashboard() {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <Dashboard projects={projects} evaluations={evaluations} onRevealChange={setDashboardState} resetTrigger={resetTrigger} />
       </div>
+
+      {/* Judge Progress Modal */}
+      <JudgeProgressModal 
+        isOpen={isJudgeModalOpen} 
+        onClose={() => setIsJudgeModalOpen(false)} 
+        projects={projects} 
+        evaluations={evaluations} 
+        activeProjectId={activeProjectId} 
+      />
+
+      {/* Add Judge Modal */}
+      <AddJudgeModal
+        isOpen={isAddJudgeModalOpen}
+        onClose={() => setIsAddJudgeModalOpen(false)}
+        onSuccess={() => {
+          alert('Judge added successfully!');
+          // Any other logic can go here (e.g. refetching if we displayed judges directly on this page)
+        }}
+      />
     </div>
   );
 }

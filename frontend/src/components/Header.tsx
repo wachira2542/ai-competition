@@ -1,5 +1,6 @@
 import React from 'react';
 import { ClipboardList } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
   activeTab: 'score' | 'dashboard';
@@ -9,6 +10,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ evaluatedCount, totalCount }) => {
+  const { t } = useLanguage();
   return (
     <header className="app-header">
       <div className="header-inner">
@@ -29,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ evaluatedCount, totalCount }) => {
             <span className="stat-num">{evaluatedCount}</span>
             <span className="stat-sep">/</span>
             <span className="stat-total">{totalCount}</span>
-            <span className="stat-label">Evaluated</span>
+            <span className="stat-label">{t('dashboard.evaluated')}</span>
           </span>
         </div>
 

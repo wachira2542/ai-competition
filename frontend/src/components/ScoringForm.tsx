@@ -2,7 +2,8 @@ import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import type { Project, Evaluation, ScoreMap } from '../types';
 
-import { CRITERIA } from '../constants/data';
+import { useCriteria } from '../hooks/useCriteria';
+import { useLanguage } from '../context/LanguageContext';
 import ProjectPanel from './ProjectPanel';
 import CriteriaCard from './CriteriaCard';
 
@@ -33,6 +34,9 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
   onCommentChange,
   onSave,
 }) => {
+  const { t } = useLanguage();
+  const CRITERIA = useCriteria();
+  
   // Pagination removed. All criteria shown on one page.
 
   const calculateTotal = () => {
@@ -61,10 +65,8 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
       <div className="criteria-column">
         <div className="criteria-header-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 className="criteria-banner-title">Scoring Criteria &amp; Evaluation Rubric</h3>
-            <p className="criteria-banner-sub">
-              โปรดอ่านเกณฑ์การให้คะแนนแต่ละด้านให้ครบถ้วนก่อนพิจารณาปรับคะแนน
-            </p>
+            <h3 className="criteria-banner-title">{t('judge.scoring')}</h3>
+            <p className="criteria-banner-sub"></p>
           </div>
         </div>
 
@@ -91,7 +93,7 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
               className="save-btn animate-pulse-slight"
               style={{ width: '100%', maxWidth: '300px', borderRadius: '8px', fontSize: '18px', padding: '16px', backgroundColor: 'var(--green)', color: 'var(--black)', border: 'none', boxShadow: '0 4px 12px rgba(45,200,77,0.3)' }}
             >
-              {saving ? '⏳ กำลังบันทึก...' : 'SAVE EVALUATION'}
+              {saving ? t('judge.saving') : t('judge.save')}
             </button>
           </div>
         </div>
@@ -100,7 +102,7 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
       {/* RIGHT: Evaluated Task List Sidebar */}
       <div className="right-sidebar" style={{ background: 'var(--white)', border: '2px solid var(--light-gray)', padding: '16px 20px', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontSize: '15px', color: 'var(--navy)', textTransform: 'uppercase', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '12px', borderBottom: '2px solid var(--light-gray)' }}>
-          <CheckCircle size={18} /> ประวัติการประเมิน
+          <CheckCircle size={18} /> {t('judge.completed')}
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
           {projects.filter(p => evaluations[p.id]).map(p => (
@@ -120,7 +122,6 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
           ))}
           {projects.filter(p => evaluations[p.id]).length === 0 && (
             <div style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '20px 12px' }}>
-              ยังไม่มีประวัติการประเมิน
             </div>
           )}
         </div>

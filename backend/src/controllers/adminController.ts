@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { getDb, persistDb } from '../db/database';
+import { queryAll } from '../db/migrations';
 
 export const getActiveProject = async (req: Request, res: Response) => {
   try {
@@ -80,6 +81,48 @@ export const clearEvaluations = async (req: Request, res: Response) => {
     res.json({ success: true, message: 'All evaluation data cleared successfully' });
   } catch (error) {
     console.error('Error clearing evaluations:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const getAllJudges = async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    const judges = queryAll(db, "SELECT id, username FROM users WHERE role = 'user'");
+    res.json({ success: true, data: judges });
+  } catch (error) {
+    console.error('Error fetching judges:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const addJudge = async (req: Request, res: Response) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Username and password are required' });
+    }
+
+    const db = await getDb();
+
+    // Check if user already exists
+    const existing = queryAll(db, 'SELECT id FROM users WHERE username = ?', [username]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'Username already exists' });
+    }
+
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    
+    db.run(
+      'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+      [username, hash, 'user']
+    );
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Judge added successfully' });
+  } catch (error) {
+    console.error('Error adding judge:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

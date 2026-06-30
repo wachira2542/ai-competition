@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 import './Login.css';
 
 export default function Login() {
+  const { t } = useLanguage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -49,14 +52,17 @@ export default function Login() {
         <div className="hero-accent-bar"></div>
 
         {/* Logo */}
-        <div className="hero-logo">
-          <div className="hero-logo-icon">
-            <i className="fa-solid fa-laptop-code"></i>
+        <div className="hero-logo" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="hero-logo-icon">
+              <i className="fa-solid fa-laptop-code"></i>
+            </div>
+            <div className="hero-logo-text">
+              <strong>AAPICO</strong>
+              <span>Judge</span>
+            </div>
           </div>
-          <div className="hero-logo-text">
-            <strong>AAPICO</strong>
-            <span>Judge</span>
-          </div>
+          <LanguageSelector />
         </div>
 
         {/* Main Content */}
@@ -66,11 +72,11 @@ export default function Login() {
           </div>
 
           <h1 className="hero-headline">
-            AAPICO<br /><em>Judge</em>
+            {t('login.title').split(' ')[0]}<br /><em>{t('login.title').split(' ')[1] || ''}</em>
           </h1>
 
           <p className="hero-sub">
-            ระบบประเมินผลและให้คะแนนการแข่งขัน AI Innovation ประจำปี 2026
+            {t('login.subtitle')}
           </p>
 
           <div className="hero-features">
@@ -107,9 +113,9 @@ export default function Login() {
               <i className="fa-solid fa-circle-dot"></i>
               AAPICO Judge — Secure Login
             </div>
-            <h2 className="form-title">เข้าสู่ระบบ</h2>
+            <h2 className="form-title">{t('login.submit').replace('เข้าสู่ระบบ', 'เข้าสู่ระบบ / Login')}</h2>
             <p className="form-subtitle">
-              กรุณาใช้ข้อมูลบัญชีผู้ใช้งานระบบ (Username และ Password) เพื่อเข้าใช้งาน
+              {t('login.username')} & {t('login.password')}
             </p>
           </div>
 
@@ -125,7 +131,7 @@ export default function Login() {
           {/* Login Form */}
           <form id="login-form" className="login-form" autoComplete="off" noValidate onSubmit={handleLogin}>
             <div className="field-group">
-              <label htmlFor="login-username">ชื่อผู้ใช้ (Username)</label>
+              <label htmlFor="login-username">{t('login.username')}</label>
               <div className="field-input-wrap">
                 <i className="fa-solid fa-user"></i>
                 <input
@@ -142,7 +148,7 @@ export default function Login() {
             </div>
 
             <div className="field-group">
-              <label htmlFor="login-password">รหัสผ่าน (Password)</label>
+              <label htmlFor="login-password">{t('login.password')}</label>
               <div className="field-input-wrap">
                 <i className="fa-solid fa-lock"></i>
                 <input
@@ -164,9 +170,9 @@ export default function Login() {
 
             <button type="submit" className="btn-submit" id="login-submit-btn" disabled={loading}>
               {loading ? (
-                <><i className="fa-solid fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
+                <><i className="fa-solid fa-spinner fa-spin"></i> Loading...</>
               ) : (
-                <><i className="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</>
+                <><i className="fa-solid fa-right-to-bracket"></i> {t('login.submit')}</>
               )}
             </button>
           </form>

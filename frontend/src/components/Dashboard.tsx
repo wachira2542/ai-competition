@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { BarChart3, Trophy, Play } from 'lucide-react';
 import type { Project, Evaluation, ProjectWithEvaluation, RevealState, ScoreMap } from '../types';
-import { CRITERIA } from '../constants/data';
+import { useCriteria } from '../hooks/useCriteria';
+import { useLanguage } from '../context/LanguageContext';
 import confetti from 'canvas-confetti';
 
 interface DashboardProps {
@@ -12,6 +13,8 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealChange, resetTrigger }) => {
+  const { t } = useLanguage();
+  const CRITERIA = useCriteria();
   const [revealState, setRevealState] = useState<RevealState>('idle');
   const [countdown, setCountdown] = useState(3);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
@@ -51,8 +54,8 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     return map;
   }, [leaderboard]);
 
-  const startReveal = () => {
-    setRevealState('counting');
+  const startCountdown = (step: number) => {
+    setRevealState(`counting-${step}` as RevealState);
     setCountdown(3);
     let current = 3;
     const timer = setInterval(() => {
@@ -61,7 +64,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         setCountdown(current);
       } else {
         clearInterval(timer);
-        setRevealState('revealed');
+        setRevealState(`revealed-${step}` as RevealState);
       }
     }, 1000);
   };
@@ -69,8 +72,9 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
   const evaluatedCount = Object.keys(evaluations).length;
 
   useEffect(() => {
-    if (revealState === 'revealed') {
-      const duration = 8 * 1000;
+    if (revealState.startsWith('revealed')) {
+      const isFinal = revealState === 'revealed';
+      const duration = isFinal ? 8 * 1000 : 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
 
@@ -134,27 +138,32 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
           <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="dot-pulse"></span>
-              กำลังรอทางคณะกรรมการสรุปผลคะแนน...
+              {t('dashboard.waitingResults')}
             </p>
             <p className="reveal-subtitle" style={{ fontSize: '16px', marginTop: '0' }}>
-              (ประเมินแล้ว <strong>{evaluatedCount}</strong> จากทั้งหมด {projects.length} โครงการ)
+              ({t('dashboard.evaluated')} <strong>{evaluatedCount}</strong> {t('dashboard.outOf')} {projects.length} {t('dashboard.projects')})
             </p>
           </div>
         </div>
         <button
           id="reveal-btn"
-          onClick={startReveal}
+          onClick={() => startCountdown(1)}
           disabled={evaluatedCount === 0}
           className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
           style={{ marginTop: '16px' }}
         >
-          <Play fill="currentColor" size={28} /> แสดงผลคะแนน (Reveal)
+          <Play fill="currentColor" size={28} /> {t('dashboard.revealBtn')}
         </button>
       </div>
     );
   }
 
-  if (revealState === 'counting') {
+  if (revealState.startsWith('counting')) {
+    let title = t('dashboard.preparing');
+    if (revealState === 'counting-1') title = t('dashboard.preparing1');
+    else if (revealState === 'counting-2') title = t('dashboard.preparing2');
+    else if (revealState === 'counting-3') title = t('dashboard.preparing3');
+
     return (
       <div className="countdown-screen-grand">
         <div className="countdown-rings">
@@ -163,7 +172,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
           <div className="ring ring-3"></div>
         </div>
         <div className="countdown-content">
-          <h2 className="countdown-title">PREPARING RESULTS</h2>
+          <h2 className="countdown-title">{title}</h2>
           <div key={countdown} className="countdown-number-grand">{countdown}</div>
         </div>
       </div>
@@ -176,33 +185,97 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
 
   const rankMeta = [
     {
-      label: 'Winner (รางวัลชนะเลิศ)',
+      label: t('dashboard.winner'),
       bgClass: 'podium-gold',
       iconColor: '#FFD700',
       rankClass: 'podium-rank-1',
     },
     {
-      label: 'Runner Up (รองชนะเลิศ อันดับ 1)',
+      label: t('dashboard.runnerUp1'),
       bgClass: 'podium-silver',
       iconColor: '#C0C0C0',
       rankClass: 'podium-rank-2',
     },
     {
-      label: '2nd Runner Up (รองชนะเลิศ อันดับ 2)',
+      label: t('dashboard.runnerUp2'),
       bgClass: 'podium-bronze',
       iconColor: '#CD7F32',
       rankClass: 'podium-rank-3',
     },
   ];
 
+  if (revealState === 'revealed-1' || revealState === 'revealed-2' || revealState === 'revealed-3') {
+    const rankIndex = parseInt(revealState.split('-')[1]) - 1; // 0, 1, 2
+    const project = top3[rankIndex];
+    const meta = rankMeta[rankIndex];
+
+    return (
+      <div className="results-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '600px', backgroundColor: '#f8fafc' }}>
+        <h2 className="animate-slide-up" style={{ color: 'var(--navy)', marginBottom: '48px', fontSize: '42px', textAlign: 'center', fontWeight: 800, textShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          {meta.label}
+        </h2>
+        
+        {project ? (
+          <div 
+            className="animate-slide-up"
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              backgroundColor: meta.bgClass === 'podium-gold' ? 'var(--navy)' : (meta.bgClass === 'podium-silver' ? 'var(--dark)' : '#8a7060'),
+              color: 'white',
+              padding: '64px',
+              borderRadius: '24px',
+              borderTop: `12px solid ${meta.iconColor}`,
+              boxShadow: `0 24px 60px ${meta.iconColor}40`,
+              width: '100%',
+              maxWidth: '800px',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            }}
+          >
+            {/* Modern Glow Effect */}
+            <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '250px', height: '250px', background: meta.iconColor, filter: 'blur(100px)', opacity: 0.25, zIndex: 0, pointerEvents: 'none' }}></div>
+            
+            <Trophy size={100} style={{ color: meta.iconColor, filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))', zIndex: 1 }} />
+            <h3 style={{ fontSize: '48px', marginTop: '32px', fontWeight: 800, zIndex: 1, letterSpacing: '0.02em', textAlign: 'center', textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>{project.team}</h3>
+            <p style={{ fontSize: '22px', opacity: 0.9, fontWeight: 500, marginTop: '12px', zIndex: 1, textAlign: 'center', maxWidth: '80%' }}>{project.name}</p>
+            
+            <div style={{ marginTop: '48px', padding: '24px 64px', background: 'rgba(0,0,0,0.25)', borderRadius: '20px', display: 'flex', alignItems: 'baseline', gap: '12px', zIndex: 1, backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <span style={{ fontSize: '72px', fontWeight: 800, lineHeight: 1, color: meta.iconColor, textShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>{project.totalScore.toFixed(2)}</span>
+              <span style={{ fontSize: '20px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.9 }}>PTS</span>
+            </div>
+          </div>
+        ) : (
+          <p style={{ fontSize: '24px', color: 'var(--muted)' }}>{t('dashboard.noProject')}</p>
+        )}
+
+        <button 
+          className="animate-fade-in"
+          onClick={() => {
+            if (rankIndex === 0) startCountdown(2);
+            else if (rankIndex === 1) startCountdown(3);
+            else setRevealState('revealed');
+          }}
+          style={{ marginTop: '80px', padding: '16px 48px', fontSize: '20px', backgroundColor: 'var(--navy)', color: 'white', border: 'none', borderRadius: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'transform 0.2s, background-color 0.2s', animationDelay: '2s' }}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          {rankIndex === 2 ? t('dashboard.showAll') : t('dashboard.nextReveal')}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="results-container">
 
       {/* Hero */}
       <div className="results-hero" style={{ position: 'relative' }}>
-        <h1 className="results-hero-title">Innovation Excellence Awards</h1>
-        <p className="results-hero-sub">Official Results &amp; Rankings</p>
-        <p className="results-hero-congrats">ขอแสดงความยินดีกับผลงานที่ได้รับรางวัลทุกทีม!</p>
+        <h1 className="results-hero-title">{t('dashboard.heroTitle')}</h1>
+        <p className="results-hero-sub">{t('dashboard.heroSub')}</p>
+        <p className="results-hero-congrats">{t('dashboard.heroCongrats')}</p>
       </div>
 
       {/* Tabs */}
@@ -211,13 +284,13 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
           onClick={() => setActiveTab('overall')}
           style={{ padding: '12px 32px', borderRadius: '30px', fontWeight: 600, border: 'none', cursor: 'pointer', backgroundColor: activeTab === 'overall' ? 'var(--green)' : 'white', color: activeTab === 'overall' ? 'var(--navy)' : 'var(--dark)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         >
-          🏆 ภาพรวมคะแนน (Overall Results)
+          {t('dashboard.tabOverall')}
         </button>
         <button 
           onClick={() => setActiveTab('judges')}
           style={{ padding: '12px 32px', borderRadius: '30px', fontWeight: 600, border: 'none', cursor: 'pointer', backgroundColor: activeTab === 'judges' ? 'var(--navy)' : 'white', color: activeTab === 'judges' ? 'white' : 'var(--dark)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         >
-          📝 รายละเอียดคะแนนรายกรรมการ (Judge Details)
+          {t('dashboard.tabJudges')}
         </button>
       </div>
 
@@ -246,7 +319,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
       {consolation.length > 0 && (
         <div className="honorable-section animate-fade-in">
           <div className="honorable-header">
-            <h3 className="honorable-title">Honorable Mentions (รางวัลชมเชย 7 อันดับ)</h3>
+            <h3 className="honorable-title">{t('dashboard.honorableTitle')}</h3>
           </div>
           <div className="honorable-grid">
             {consolation.map((project, index) => (
@@ -271,23 +344,23 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         <div className="standings-card">
           <div className="standings-header">
             <h2 className="standings-title">
-              <BarChart3 size={20} /> Complete Standings (ตารางสรุปผลทั้งหมด)
+              <BarChart3 size={20} /> {t('dashboard.standingsTitle')}
             </h2>
           </div>
           <div className="standings-table-wrap">
             <table className="standings-table">
               <thead>
                 <tr className="standings-thead-row">
-                  <th className="standings-th standings-th--center">Rank</th>
-                  <th className="standings-th">Team / Project</th>
+                  <th className="standings-th standings-th--center">{t('dashboard.standingsRank')}</th>
+                  <th className="standings-th">{t('dashboard.standingsTeam')}</th>
                   {CRITERIA.map((c) => (
                     <th key={c.id} className="standings-th standings-th--center" title={c.name}>
                       {c.name}<br/>
                       <span style={{ fontSize: '9px', fontWeight: 'normal', color: 'var(--muted)' }}>(Max {c.maxScore})</span>
                     </th>
                   ))}
-                  <th className="standings-th standings-th--center">Total Score</th>
-                  <th className="standings-th">Feedback</th>
+                  <th className="standings-th standings-th--center">{t('dashboard.standingsTotal')}</th>
+                  <th className="standings-th">{t('dashboard.standingsFeedback')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,7 +449,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
                               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                 <thead>
                                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--muted)' }}>Judge</th>
+                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--muted)' }}>{t('dashboard.judgeName')}</th>
                                     {CRITERIA.map(c => <th key={c.id} style={{ textAlign: 'center', padding: '8px', color: 'var(--muted)' }}>{c.id.toUpperCase()}</th>)}
                                     <th style={{ textAlign: 'center', padding: '8px', color: 'var(--muted)' }}>Total</th>
                                   </tr>
@@ -416,12 +489,12 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         <div className="standings-card">
           <div className="standings-header" style={{ backgroundColor: 'var(--dark)' }}>
             <h2 className="standings-title">
-              <Play size={20} style={{ transform: 'rotate(90deg)' }} /> Judge Evaluation Tasks (สรุปการประเมินแยกตามกรรมการ)
+              <Play size={20} style={{ transform: 'rotate(90deg)' }} /> {t('dashboard.judgesTitle')}
             </h2>
           </div>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {Object.keys(evaluationsByJudge).length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--muted)' }}>No evaluations yet.</p>
+              <p style={{ textAlign: 'center', color: 'var(--muted)' }}>{t('dashboard.noEvals')}</p>
             ) : (
               Object.entries(evaluationsByJudge).map(([judgeName, tasks]) => (
                 <div key={judgeName} style={{ border: '1px solid var(--light-gray)', borderRadius: '8px', overflow: 'hidden' }}>
