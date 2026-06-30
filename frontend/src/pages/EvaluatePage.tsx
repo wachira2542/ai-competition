@@ -6,6 +6,7 @@ import type { ScoreMap } from '../types';
 import Header from '../components/Header';
 import ScoringForm from '../components/ScoringForm';
 import SaveModal from '../components/SaveModal';
+import JudgeSummaryTable from '../components/JudgeSummaryTable';
 import { Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -104,6 +105,8 @@ export default function EvaluatePage() {
         <div>Judge: <strong>{user?.username}</strong></div>
         <button onClick={logout} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '4px 12px', cursor: 'pointer' }}>Logout</button>
       </div>
+
+      <JudgeSummaryTable projects={projects} evaluations={evaluations} />
 
       <main className="app-main">
         {!selectedProjectId && !activeProjectId && Object.keys(evaluations).length === 0 ? (

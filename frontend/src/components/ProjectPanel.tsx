@@ -12,8 +12,6 @@ interface ProjectPanelProps {
   comment: string;
   onProjectChange: (id: string) => void;
   onCommentChange: (comment: string) => void;
-  onSave: () => void;
-  saving: boolean;
 }
 
 const ProjectPanel: React.FC<ProjectPanelProps> = ({
@@ -25,8 +23,6 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
   comment,
   onProjectChange,
   onCommentChange,
-  onSave,
-  saving,
 }) => {
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const isEvaluated = !!evaluations[selectedProjectId];
@@ -106,23 +102,6 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
         />
       </div>
 
-      {/* Save Button */}
-      <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '2px dashed var(--light-gray)' }}>
-        <p style={{ textAlign: 'center', color: 'var(--navy)', fontWeight: 700, fontSize: '14px', marginBottom: '12px' }}>
-          เมื่อลงคะแนนครบทุกหัวข้อแล้ว<br/>กรุณากดปุ่ม Save ด้านล่างนี้
-        </p>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <button
-            id="save-btn"
-            onClick={onSave}
-            disabled={saving}
-            className="save-btn animate-pulse-slight"
-            style={{ width: '100%', maxWidth: '300px', borderRadius: '8px', fontSize: '18px', padding: '16px', backgroundColor: 'var(--green)', color: 'var(--black)', border: 'none', boxShadow: '0 4px 12px rgba(45,200,77,0.3)' }}
-          >
-            {saving ? '⏳ กำลังบันทึก...' : '💾 SAVE EVALUATION'}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
