@@ -43,6 +43,8 @@ export const th = {
     commentLabel: 'ข้อเสนอแนะเพิ่มเติม (ตัวเลือก)',
     commentPlaceholder: 'เขียนความคิดเห็นหรือข้อเสนอแนะที่นี่...',
     totalScore: 'คะแนนรวม',
+    summaryTitle: 'คะแนนการประเมินทั้งหมดของคุณ',
+    summaryClick: 'กรุณาคลิกตรงนี้',
   },
   dashboard: {
     waitingResults: 'กำลังรอทางคณะกรรมการสรุปผลคะแนน...',

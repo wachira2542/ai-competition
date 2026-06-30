@@ -43,6 +43,8 @@ export const en = {
     commentLabel: 'Additional Feedback (Optional)',
     commentPlaceholder: 'Write your thoughts or suggestions here...',
     totalScore: 'TOTAL SCORE',
+    summaryTitle: 'Your Overall Evaluation Scores',
+    summaryClick: 'Please click here',
   },
   dashboard: {
     waitingResults: 'Waiting for Judges to finalize scores...',
