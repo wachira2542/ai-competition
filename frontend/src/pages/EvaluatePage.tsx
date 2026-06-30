@@ -49,7 +49,7 @@ export default function EvaluatePage() {
       setCurrentComment(evalData.comment || '');
     } else {
       const init: ScoreMap = {};
-      CRITERIA.forEach((c) => (init[c.id] = 0));
+      CRITERIA.forEach((c) => (init[c.id] = ''));
       setCurrentScores(init);
       setCurrentComment('');
     }

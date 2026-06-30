@@ -89,9 +89,9 @@ const ScoringForm: React.FC<ScoringFormProps> = ({
             <button
               id="save-btn"
               onClick={onSave}
-              disabled={saving}
-              className="save-btn animate-pulse-slight"
-              style={{ width: '100%', maxWidth: '300px', borderRadius: '8px', fontSize: '18px', padding: '16px', backgroundColor: 'var(--green)', color: 'var(--black)', border: 'none', boxShadow: '0 4px 12px rgba(45,200,77,0.3)' }}
+              disabled={saving || !CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')}
+              className={`save-btn ${(!saving && CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')) ? 'animate-pulse-slight' : ''}`}
+              style={{ width: '100%', maxWidth: '300px', borderRadius: '8px', fontSize: '18px', padding: '16px', backgroundColor: (saving || !CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')) ? 'var(--light-gray)' : 'var(--green)', color: (saving || !CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')) ? 'var(--muted)' : 'var(--black)', border: 'none', boxShadow: (saving || !CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')) ? 'none' : '0 4px 12px rgba(45,200,77,0.3)', cursor: (saving || !CRITERIA.every(c => currentScores[c.id] !== undefined && currentScores[c.id] !== '')) ? 'not-allowed' : 'pointer' }}
             >
               {saving ? t('judge.saving') : t('judge.save')}
             </button>

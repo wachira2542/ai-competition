@@ -54,7 +54,7 @@ const CriteriaCard: React.FC<CriteriaCardProps> = ({ criterion, scores, onScoreC
               }}
               onBlur={(e) => {
                 if (e.target.value === '' || isNaN(parseFloat(e.target.value))) {
-                  onScoreChange(criterion.id, '0.0');
+                  onScoreChange(criterion.id, '');
                 } else {
                   onScoreChange(criterion.id, parseFloat(e.target.value).toFixed(1));
                 }
