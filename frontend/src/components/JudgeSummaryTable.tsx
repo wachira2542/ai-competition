@@ -51,7 +51,7 @@ const JudgeSummaryTable: React.FC<JudgeSummaryTableProps> = ({ projects, evaluat
                 <tr>
                   <th className="standings-th" style={{ color: 'white' }}>Team</th>
                   <th className="standings-th" style={{ color: 'white' }}>Project Name</th>
-                  {CRITERIA.map((c, i) => (
+                  {CRITERIA.map((c) => (
                     <th key={c.id} className="standings-th standings-th--center" style={{ color: 'white', whiteSpace: 'normal', minWidth: '120px' }}>
                       {c.name}<br/>(Max {c.maxScore})
                     </th>
