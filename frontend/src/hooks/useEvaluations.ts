@@ -10,7 +10,8 @@ export function useProjects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchProjects = useCallback(() => {
+    setLoading(true);
     fetch(`${API_BASE}/projects`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((json) => {
@@ -21,7 +22,11 @@ export function useProjects() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { projects, loading, error };
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  return { projects, loading, error, refetch: fetchProjects };
 }
 
 export function useEvaluations() {

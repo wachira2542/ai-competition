@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getActiveProject, setActiveProject, clearEvaluations, getAllJudges, addJudge } from '../controllers/adminController';
+import { getActiveProject, setActiveProject, clearEvaluations, getAllJudges, addJudge, addProject } from '../controllers/adminController';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -18,5 +18,8 @@ router.get('/judges', requireAuth, requireAdmin, getAllJudges);
 
 // Admin can add a judge
 router.post('/judges', requireAuth, requireAdmin, addJudge);
+
+// Admin can add a project
+router.post('/projects', requireAuth, requireAdmin, addProject);
 
 export default router;

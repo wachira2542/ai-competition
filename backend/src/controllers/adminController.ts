@@ -126,3 +126,31 @@ export const addJudge = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+export const addProject = async (req: Request, res: Response) => {
+  try {
+    const { id, name, team } = req.body;
+    if (!id || !name || !team) {
+      return res.status(400).json({ success: false, message: 'Id, name, and team are required' });
+    }
+
+    const db = await getDb();
+
+    // Check if project already exists
+    const existing = queryAll(db, 'SELECT id FROM projects WHERE id = ?', [id]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'Project ID already exists' });
+    }
+
+    db.run(
+      'INSERT INTO projects (id, name, team) VALUES (?, ?, ?)',
+      [id, name, team]
+    );
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Project added successfully' });
+  } catch (error) {
+    console.error('Error adding project:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};

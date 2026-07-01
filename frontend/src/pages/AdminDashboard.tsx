@@ -4,15 +4,16 @@ import { useActiveProject } from '../hooks/useActiveProject';
 import Dashboard from '../components/Dashboard';
 import JudgeProgressModal from '../components/JudgeProgressModal';
 import AddJudgeModal from '../components/AddJudgeModal';
+import AddProjectModal from '../components/AddProjectModal';
 import { useAuth } from '../context/AuthContext';
-import { Settings, LogOut, UserPlus, Send, Trash2, Activity } from 'lucide-react';
+import { Settings, LogOut, UserPlus, Send, Trash2, Activity, FolderPlus } from 'lucide-react';
 import type { RevealState } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects();
   const { evaluations, refetch } = useEvaluations();
   const { activeProjectId, pushedProjects, setActive, loading: activeLoading } = useActiveProject();
   const { logout, user } = useAuth();
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [isJudgeModalOpen, setIsJudgeModalOpen] = useState(false);
   const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
 
   useEffect(() => {
     if (activeProjectId && !selectedProject) {
@@ -69,6 +71,14 @@ export default function AdminDashboard() {
               🔄 {t('admin.backToMain')}
             </button>
           )}
+          <button 
+            onClick={() => setIsAddProjectModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
+          >
+            <FolderPlus size={16} /> Add Project
+          </button>
           <button 
             onClick={() => setIsAddJudgeModalOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
@@ -203,6 +213,16 @@ export default function AdminDashboard() {
         onSuccess={() => {
           alert('Judge added successfully!');
           // Any other logic can go here (e.g. refetching if we displayed judges directly on this page)
+        }}
+      />
+
+      {/* Add Project Modal */}
+      <AddProjectModal
+        isOpen={isAddProjectModalOpen}
+        onClose={() => setIsAddProjectModalOpen(false)}
+        onSuccess={() => {
+          alert('Project added successfully!');
+          refetchProjects();
         }}
       />
     </div>
