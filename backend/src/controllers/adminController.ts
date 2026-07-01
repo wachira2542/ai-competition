@@ -154,3 +154,112 @@ export const addProject = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+export const updateProject = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, team } = req.body;
+    if (!name || !team) {
+      return res.status(400).json({ success: false, message: 'Name and team are required' });
+    }
+
+    const db = await getDb();
+    const existing = queryAll(db, 'SELECT id FROM projects WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    db.run(
+      'UPDATE projects SET name = ?, team = ? WHERE id = ?',
+      [name, team, id]
+    );
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Project updated successfully' });
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const deleteProject = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const db = await getDb();
+    
+    const existing = queryAll(db, 'SELECT id FROM projects WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    // SQLite FOREIGN KEY ON DELETE CASCADE might not be active (depends on PRAGMA), 
+    // so let's delete evaluations manually just to be safe.
+    db.run('DELETE FROM evaluations WHERE project_id = ?', [id]);
+    db.run('DELETE FROM projects WHERE id = ?', [id]);
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const updateJudge = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { username, password } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ success: false, message: 'Username is required' });
+    }
+
+    const db = await getDb();
+    const existing = queryAll(db, 'SELECT id FROM users WHERE id = ? AND role = ?', [id, 'user']);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Judge not found' });
+    }
+
+    // Check if new username exists for someone else
+    const existingUser = queryAll(db, 'SELECT id FROM users WHERE username = ? AND id != ?', [username, id]);
+    if (existingUser.length > 0) {
+      return res.status(400).json({ success: false, message: 'Username already taken' });
+    }
+
+    if (password) {
+      const crypto = require('crypto');
+      const hash = crypto.createHash('sha256').update(password).digest('hex');
+      db.run('UPDATE users SET username = ?, password_hash = ? WHERE id = ?', [username, hash, id]);
+    } else {
+      db.run('UPDATE users SET username = ? WHERE id = ?', [username, id]);
+    }
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Judge updated successfully' });
+  } catch (error) {
+    console.error('Error updating judge:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const deleteJudge = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const db = await getDb();
+    
+    const existing = queryAll(db, 'SELECT id FROM users WHERE id = ? AND role = ?', [id, 'user']);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Judge not found' });
+    }
+
+    // Delete evaluations by this judge to be safe
+    db.run('DELETE FROM evaluations WHERE user_id = ?', [id]);
+    db.run('DELETE FROM users WHERE id = ?', [id]);
+    
+    persistDb(db);
+    res.json({ success: true, message: 'Judge deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting judge:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};

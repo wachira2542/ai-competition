@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
           >
-            <FolderPlus size={16} /> Add Project
+            <FolderPlus size={16} /> Manage Projects
           </button>
           <button 
             onClick={() => setIsAddJudgeModalOpen(true)}
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
             onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
           >
-            <UserPlus size={16} /> {t('admin.addJudge')}
+            <UserPlus size={16} /> Manage Judges
           </button>
           <span>Admin: <strong>{user?.username}</strong></span>
           <LanguageSelector />
@@ -220,8 +220,8 @@ export default function AdminDashboard() {
       <AddProjectModal
         isOpen={isAddProjectModalOpen}
         onClose={() => setIsAddProjectModalOpen(false)}
+        projects={projects}
         onSuccess={() => {
-          alert('Project added successfully!');
           refetchProjects();
         }}
       />
