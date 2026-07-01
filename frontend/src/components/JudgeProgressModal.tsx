@@ -110,11 +110,18 @@ export default function JudgeProgressModal({ isOpen, onClose, projects, evaluati
                     style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--light-gray)', fontSize: '14px', outline: 'none' }}
                   >
                     <option value="">{t('admin.noProjectSelected')}</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.id}: {p.name} {p.id === activeProjectId ? `(${t('admin.active')})` : ''}
-                      </option>
-                    ))}
+                    {projects.map(p => {
+                      const isEvaluated = !!evaluations[p.id];
+                      return (
+                        <option 
+                          key={p.id} 
+                          value={p.id}
+                          style={isEvaluated ? { backgroundColor: '#dcfce7', color: '#166534', fontWeight: 'bold' } : {}}
+                        >
+                          {p.id}: {p.name} {p.id === activeProjectId ? `(${t('admin.active')})` : ''} {isEvaluated ? '(ประเมินแล้ว)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>

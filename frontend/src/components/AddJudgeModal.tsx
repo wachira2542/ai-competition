@@ -144,7 +144,7 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
         <div style={{ padding: '20px', borderBottom: '1px solid var(--light-gray)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--navy)', color: 'white', borderRadius: '8px 8px 0 0' }}>
           <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <UserPlus size={20} />
-            Judge Management
+            จัดการกรรมการ (Judge Management)
           </h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
             <X size={24} />
@@ -156,12 +156,12 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
           {view === 'list' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, color: 'var(--navy)' }}>All Judges ({judges.length})</h3>
+                <h3 style={{ margin: 0, color: 'var(--navy)' }}>กรรมการทั้งหมด ({judges.length})</h3>
                 <button 
                   onClick={handleAddNew}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
                 >
-                  <Plus size={16} /> Add New Judge
+                  <Plus size={16} /> เพิ่มกรรมการใหม่
                 </button>
               </div>
               
@@ -170,8 +170,8 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
                   <thead style={{ backgroundColor: '#f8fafc' }}>
                     <tr style={{ borderBottom: '1px solid var(--light-gray)' }}>
                       <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>ID</th>
-                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>Username</th>
-                      <th style={{ padding: '12px', textAlign: 'center', color: 'var(--navy)' }}>Actions</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>ชื่อผู้ใช้ (Username)</th>
+                      <th style={{ padding: '12px', textAlign: 'center', color: 'var(--navy)' }}>จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -192,7 +192,7 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
                     {judges.length === 0 && (
                       <tr>
                         <td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
-                          No judges found.
+                          ไม่พบข้อมูลกรรมการ
                         </td>
                       </tr>
                     )}
@@ -205,13 +205,13 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
           {view === 'form' && (
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, color: 'var(--navy)' }}>{isEditing ? 'Edit Judge' : 'Add New Judge'}</h3>
+                <h3 style={{ margin: 0, color: 'var(--navy)' }}>{isEditing ? 'แก้ไขกรรมการ (Edit Judge)' : 'เพิ่มกรรมการใหม่ (Add New Judge)'}</h3>
                 <button 
                   type="button"
                   onClick={() => setView('list')}
                   style={{ background: 'transparent', border: 'none', color: 'var(--navy)', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}
                 >
-                  Back to List
+                  กลับไปหน้ารายการ
                 </button>
               </div>
 
@@ -237,7 +237,7 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
               
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--navy)', marginBottom: '8px' }}>
-                  {isEditing ? 'New Password (leave blank to keep current)' : t('login.password')}
+                  {isEditing ? 'รหัสผ่านใหม่ (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)' : t('login.password')}
                 </label>
                 <input 
                   type="password" 
@@ -259,7 +259,7 @@ export default function AddJudgeModal({ isOpen, onClose, onSuccess }: AddJudgeMo
                   transition: 'transform 0.1s'
                 }}
               >
-                {loading ? t('judge.saving') : (isEditing ? 'Save Changes' : t('admin.addJudge'))}
+                {loading ? t('judge.saving') : (isEditing ? 'บันทึกการเปลี่ยนแปลง' : t('admin.addJudge'))}
               </button>
             </form>
           )}

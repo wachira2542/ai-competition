@@ -54,51 +54,55 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-root" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* Admin Header */}
-      <header style={{ backgroundColor: 'var(--navy)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Settings size={24} color="var(--green)" />
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>{t('admin.title')}</h1>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px' }}>
-          {dashboardState !== 'idle' && (
+      {/* Admin Header (Hidden during reveal) */}
+      {dashboardState === 'idle' && (
+        <header style={{ backgroundColor: 'var(--navy)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Settings size={24} color="var(--green)" />
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>{t('admin.title')}</h1>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px' }}>
             <button 
-              onClick={() => setResetTrigger(prev => prev + 1)}
-              style={{ padding: '6px 14px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onClick={() => setIsAddProjectModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
             >
-              🔄 {t('admin.backToMain')}
+              <FolderPlus size={16} /> Manage Projects
             </button>
-          )}
-          <button 
-            onClick={() => setIsAddProjectModalOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
-          >
-            <FolderPlus size={16} /> Manage Projects
-          </button>
-          <button 
-            onClick={() => setIsAddJudgeModalOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
-          >
-            <UserPlus size={16} /> Manage Judges
-          </button>
-          <span>Admin: <strong>{user?.username}</strong></span>
-          <LanguageSelector />
-          <button 
-            onClick={logout}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', transition: 'all 0.3s' }}
-            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <LogOut size={16} /> {t('admin.logout')}
-          </button>
-        </div>
-      </header>
+            <button 
+              onClick={() => setIsAddJudgeModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', fontWeight: 700, transition: 'all 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}
+            >
+              <UserPlus size={16} /> Manage Judges
+            </button>
+            <span>Admin: <strong>{user?.username}</strong></span>
+            <LanguageSelector />
+            <button 
+              onClick={logout}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', transition: 'all 0.3s' }}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <LogOut size={16} /> {t('admin.logout')}
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Floating Back Button during reveal */}
+      {dashboardState !== 'idle' && (
+        <button 
+          onClick={() => setResetTrigger(prev => prev + 1)}
+          style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 1000, padding: '12px 24px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '30px', cursor: 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', transition: 'all 0.3s' }}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; }}
+        >
+          🔄 {t('admin.backToMain')}
+        </button>
+      )}
 
       {/* Admin Controls */}
       {dashboardState === 'idle' && (
@@ -116,11 +120,18 @@ export default function AdminDashboard() {
             onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--light-gray)'; e.currentTarget.style.boxShadow = 'none'; }}
           >
             <option value="">{t('admin.waiting')}</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>
-                {pushedProjects.includes(p.id) ? '✓ ' : ''}{p.id}: {p.name}
-              </option>
-            ))}
+            {projects.map(p => {
+              const isEvaluated = !!evaluations[p.id];
+              return (
+                <option 
+                  key={p.id} 
+                  value={p.id}
+                  style={isEvaluated ? { backgroundColor: '#dcfce7', color: '#166534', fontWeight: 'bold' } : {}}
+                >
+                  {pushedProjects.includes(p.id) ? '✓ ' : ''}{p.id}: {p.name} {isEvaluated ? '(ประเมินแล้ว)' : ''}
+                </option>
+              );
+            })}
           </select>
         </div>
         <button 

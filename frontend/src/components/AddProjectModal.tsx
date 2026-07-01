@@ -117,7 +117,7 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
         <div style={{ padding: '20px', borderBottom: '1px solid var(--light-gray)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--navy)', color: 'white', borderRadius: '8px 8px 0 0' }}>
           <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FolderPlus size={20} />
-            Project Management
+            จัดการโปรเจค (Project Management)
           </h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
             <X size={24} />
@@ -129,12 +129,12 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
           {view === 'list' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, color: 'var(--navy)' }}>All Projects ({projects.length})</h3>
+                <h3 style={{ margin: 0, color: 'var(--navy)' }}>โปรเจคทั้งหมด ({projects.length})</h3>
                 <button 
                   onClick={handleAddNew}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--green)', color: 'var(--navy)', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
                 >
-                  <Plus size={16} /> Add New Project
+                  <Plus size={16} /> เพิ่มโปรเจคใหม่
                 </button>
               </div>
               
@@ -143,9 +143,9 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
                   <thead style={{ backgroundColor: '#f8fafc' }}>
                     <tr style={{ borderBottom: '1px solid var(--light-gray)' }}>
                       <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>ID</th>
-                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>Name</th>
-                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>Team</th>
-                      <th style={{ padding: '12px', textAlign: 'center', color: 'var(--navy)' }}>Actions</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>ชื่อโปรเจค (Name)</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: 'var(--navy)' }}>ชื่อทีม (Team)</th>
+                      <th style={{ padding: '12px', textAlign: 'center', color: 'var(--navy)' }}>จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -167,7 +167,7 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
                     {projects.length === 0 && (
                       <tr>
                         <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
-                          No projects found.
+                          ไม่พบข้อมูลโปรเจค
                         </td>
                       </tr>
                     )}
@@ -180,13 +180,13 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
           {view === 'form' && (
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, color: 'var(--navy)' }}>{isEditing ? 'Edit Project' : 'Add New Project'}</h3>
+                <h3 style={{ margin: 0, color: 'var(--navy)' }}>{isEditing ? 'แก้ไขโปรเจค (Edit Project)' : 'เพิ่มโปรเจคใหม่ (Add New Project)'}</h3>
                 <button 
                   type="button"
                   onClick={() => setView('list')}
                   style={{ background: 'transparent', border: 'none', color: 'var(--navy)', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}
                 >
-                  Back to List
+                  กลับไปหน้ารายการ
                 </button>
               </div>
 
@@ -198,7 +198,7 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
               
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--navy)', marginBottom: '8px' }}>
-                  Project ID
+                  รหัสโปรเจค (Project ID)
                 </label>
                 <input 
                   type="text" 
@@ -209,12 +209,12 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
                   style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid var(--light-gray)', borderRadius: '4px', outlineColor: 'var(--green)', backgroundColor: isEditing ? '#f1f5f9' : 'white' }}
                   placeholder="e.g. PJ01"
                 />
-                {isEditing && <small style={{ color: 'var(--muted)' }}>Project ID cannot be changed.</small>}
+                {isEditing && <small style={{ color: 'var(--muted)' }}>รหัสโปรเจคไม่สามารถแก้ไขได้</small>}
               </div>
               
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--navy)', marginBottom: '8px' }}>
-                  Project Name
+                  ชื่อโปรเจค (Project Name)
                 </label>
                 <input 
                   type="text" 
@@ -228,7 +228,7 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--navy)', marginBottom: '8px' }}>
-                  Team Name
+                  ชื่อทีม (Team Name)
                 </label>
                 <input 
                   type="text" 
@@ -250,7 +250,7 @@ export default function AddProjectModal({ isOpen, onClose, onSuccess, projects }
                   transition: 'transform 0.1s'
                 }}
               >
-                {loading ? t('judge.saving') : (isEditing ? 'Save Changes' : 'Add Project')}
+                {loading ? t('judge.saving') : (isEditing ? 'บันทึกการเปลี่ยนแปลง' : 'เพิ่มโปรเจค')}
               </button>
             </form>
           )}
