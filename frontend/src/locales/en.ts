@@ -56,6 +56,7 @@ export const en = {
     preparing1: 'PREPARING 1ST PLACE',
     preparing2: 'PREPARING 2ND PLACE',
     preparing3: 'PREPARING 3RD PLACE',
+    preparingHonorable: 'PREPARING HONORABLE MENTIONS',
     winner: '1st Place Winner',
     runnerUp1: '2nd Place',
     runnerUp2: '3rd Place',

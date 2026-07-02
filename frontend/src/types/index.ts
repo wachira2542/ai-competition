@@ -55,4 +55,4 @@ export interface ProjectWithEvaluation extends Project {
   details?: EvaluationDetail[];
 }
 
-export type RevealState = 'idle' | 'counting-1' | 'revealed-1' | 'counting-2' | 'revealed-2' | 'counting-3' | 'revealed-3' | 'revealed';
+export type RevealState = 'idle' | 'counting-honorable' | 'revealed-honorable' | 'counting-1' | 'revealed-1' | 'counting-2' | 'revealed-2' | 'counting-3' | 'revealed-3' | 'revealed';

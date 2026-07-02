@@ -56,6 +56,7 @@ export const th = {
     preparing1: 'กำลังเตรียมประกาศรางวัลชนะเลิศ',
     preparing2: 'กำลังเตรียมประกาศรางวัลรองชนะเลิศอันดับ 1',
     preparing3: 'กำลังเตรียมประกาศรางวัลรองชนะเลิศอันดับ 2',
+    preparingHonorable: 'กำลังเตรียมประกาศรางวัลชมเชย',
     winner: '1st Place Winner',
     runnerUp1: '2nd Place',
     runnerUp2: '3rd Place',

@@ -58,7 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     return map;
   }, [leaderboard]);
 
-  const startCountdown = (step: number) => {
+  const startCountdown = (step: number | 'honorable') => {
     suspenseAudio.currentTime = 0;
     suspenseAudio.play().catch(e => console.error("Audio play failed", e));
     setRevealState(`counting-${step}` as RevealState);
@@ -158,7 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         </div>
         <button
           id="reveal-btn"
-          onClick={() => startCountdown(3)}
+          onClick={() => startCountdown('honorable')}
           disabled={evaluatedCount === 0}
           className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
           style={{ marginTop: '16px' }}
@@ -174,6 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     if (revealState === 'counting-1') title = t('dashboard.preparing1');
     else if (revealState === 'counting-2') title = t('dashboard.preparing2');
     else if (revealState === 'counting-3') title = t('dashboard.preparing3');
+    else if (revealState === 'counting-honorable') title = (t('dashboard.preparingHonorable') as string) || 'PREPARING HONORABLE MENTIONS';
 
     return (
       <div className="countdown-screen-grand">
@@ -214,6 +215,65 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
       rankClass: 'podium-rank-3',
     },
   ];
+
+  if (revealState === 'revealed-honorable') {
+    return (
+      <div 
+        className="results-container animate-fade-in" 
+        style={{ 
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', maxWidth: '100vw', zIndex: 50,
+          backgroundColor: '#0f172a',
+          backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 60%)'
+        }}
+      >
+        <style>{`
+          @keyframes titleFadeScale {
+            0% { transform: scale(0.9); opacity: 0; filter: blur(10px); }
+            100% { transform: scale(1); opacity: 1; filter: blur(0); text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+          }
+          .honorable-title-anim {
+            animation: titleFadeScale 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          }
+        `}</style>
+        <h2 className="honorable-title-anim" style={{ color: 'white', marginBottom: '32px', fontSize: '48px', textAlign: 'center', fontWeight: 900, letterSpacing: '0.05em' }}>
+          {t('dashboard.honorableTitle')}
+        </h2>
+        
+        {consolation.length > 0 ? (
+          <div className="animate-slide-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', width: '90%', maxWidth: '1000px', maxHeight: '60vh', overflowY: 'auto', padding: '20px' }}>
+             {consolation.map((project, index) => (
+                <div key={project.id} style={{ backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                    <div style={{ width: '40px', height: '40px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px', flexShrink: 0 }}>
+                      {index + 4}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: '18px' }}>{project.team}</div>
+                      <div style={{ fontSize: '14px', opacity: 0.8 }}>{project.name}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--green)' }}>{project.totalScore.toFixed(2)}</div>
+                      <div style={{ fontSize: '10px', opacity: 0.6, textTransform: 'uppercase', fontWeight: 700 }}>PTS</div>
+                    </div>
+                </div>
+             ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: '24px', color: 'rgba(255,255,255,0.5)' }}>{t('dashboard.noProject')}</p>
+        )}
+
+        <button
+          className="animate-fade-in"
+          onClick={() => startCountdown(3)}
+          style={{ marginTop: '40px', padding: '18px 56px', fontSize: '22px', fontWeight: 700, letterSpacing: '0.05em', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '40px', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', animationDelay: '1.5s' }}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(255,255,255,0.2)`; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'; }}
+        >
+          {t('dashboard.nextReveal')}
+        </button>
+      </div>
+    );
+  }
 
   if (revealState === 'revealed-1' || revealState === 'revealed-2' || revealState === 'revealed-3') {
     const rankIndex = parseInt(revealState.split('-')[1]) - 1; // 0, 1, 2
