@@ -52,11 +52,18 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({
           value={selectedProjectId}
           onChange={(e) => onProjectChange(e.target.value)}
         >
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {pushedProjects.includes(p.id) ? '✓ ' : ''}{p.team} — {p.name}
-            </option>
-          ))}
+          {projects.map((p) => {
+            const isEvaluatedByJudge = !!evaluations[p.id];
+            return (
+              <option 
+                key={p.id} 
+                value={p.id}
+                style={isEvaluatedByJudge ? { backgroundColor: '#dcfce7', color: '#166534', fontWeight: 'bold' } : {}}
+              >
+                {pushedProjects.includes(p.id) ? '✓ ' : ''}{p.team} — {p.name} {isEvaluatedByJudge ? '(ประเมินแล้ว)' : ''}
+              </option>
+            );
+          })}
         </select>
       </div>
 
