@@ -58,7 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     return map;
   }, [leaderboard]);
 
-  const startCountdown = (step: number | 'honorable') => {
+  const startCountdown = (step: string | number) => {
     suspenseAudio.currentTime = 0;
     suspenseAudio.play().catch(e => console.error("Audio play failed", e));
     setRevealState(`counting-${step}` as RevealState);
@@ -138,62 +138,24 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     }
   }, [resetTrigger, suspenseAudio, applauseAudio]);
 
-  if (revealState === 'idle') {
-    return (
-      <div className="reveal-idle">
-        <div className="waiting-pulse">
-          <BarChart3 size={56} className="waiting-icon" />
-        </div>
-        <div className="reveal-text">
-          <h2 className="reveal-title">Evaluation Results</h2>
-          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="dot-pulse"></span>
-              {t('dashboard.waitingResults')}
-            </p>
-            <p className="reveal-subtitle" style={{ fontSize: '16px', marginTop: '0' }}>
-              ({t('dashboard.evaluated')} <strong>{evaluatedCount}</strong> {t('dashboard.outOf')} {projects.length} {t('dashboard.projects')})
-            </p>
-          </div>
-        </div>
-        <button
-          id="reveal-btn"
-          onClick={() => startCountdown('honorable')}
-          disabled={evaluatedCount === 0}
-          className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
-          style={{ marginTop: '16px' }}
-        >
-          <Play fill="currentColor" size={28} /> {t('dashboard.revealBtn')}
-        </button>
-      </div>
-    );
-  }
-
-  if (revealState.startsWith('counting')) {
-    let title = t('dashboard.preparing');
-    if (revealState === 'counting-1') title = t('dashboard.preparing1');
-    else if (revealState === 'counting-2') title = t('dashboard.preparing2');
-    else if (revealState === 'counting-3') title = t('dashboard.preparing3');
-    else if (revealState === 'counting-honorable') title = (t('dashboard.preparingHonorable') as string) || 'PREPARING HONORABLE MENTIONS';
-
-    return (
-      <div className="countdown-screen-grand">
-        <div className="countdown-rings">
-          <div className="ring ring-1"></div>
-          <div className="ring ring-2"></div>
-          <div className="ring ring-3"></div>
-        </div>
-        <div className="countdown-content">
-          <h2 className="countdown-title">{title}</h2>
-          <div key={countdown} className="countdown-number-grand">{countdown}</div>
-        </div>
-      </div>
-    );
-  }
-
   const evaluatedProjects = leaderboard.filter((p) => p.isEvaluated);
   const top3 = evaluatedProjects.slice(0, 3);
   const consolation = evaluatedProjects.slice(3, 10);
+
+  useEffect(() => {
+    if (revealState.startsWith('revealed-honorable-')) {
+      const revealedCountStr = revealState.replace('revealed-honorable-', '');
+      const revealedCount = parseInt(revealedCountStr || '0', 10);
+      const visibleIndexStart = Math.max(0, consolation.length - 1 - revealedCount);
+      
+      const el = document.getElementById(`honorable-card-${visibleIndexStart}`);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }
+  }, [revealState, consolation.length]);
 
   const rankMeta = [
     {
@@ -216,7 +178,74 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
     },
   ];
 
-  if (revealState === 'revealed-honorable') {
+  if (revealState === 'idle') {
+    return (
+      <div className="reveal-idle">
+        <div className="waiting-pulse">
+          <BarChart3 size={56} className="waiting-icon" />
+        </div>
+        <div className="reveal-text">
+          <h2 className="reveal-title">Evaluation Results</h2>
+          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="dot-pulse"></span>
+              {t('dashboard.waitingResults')}
+            </p>
+            <p className="reveal-subtitle" style={{ fontSize: '16px', marginTop: '0' }}>
+              ({t('dashboard.evaluated')} <strong>{evaluatedCount}</strong> {t('dashboard.outOf')} {projects.length} {t('dashboard.projects')})
+            </p>
+          </div>
+        </div>
+        <button
+          id="reveal-btn"
+          onClick={() => {
+            if (consolation.length > 0) {
+              startCountdown('honorable-0');
+            } else {
+              startCountdown(3);
+            }
+          }}
+          disabled={evaluatedCount === 0}
+          className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
+          style={{ marginTop: '16px' }}
+        >
+          <Play fill="currentColor" size={28} /> {t('dashboard.revealBtn')}
+        </button>
+      </div>
+    );
+  }
+
+  if (revealState.startsWith('counting')) {
+    let title = t('dashboard.preparing');
+    if (revealState === 'counting-1') title = t('dashboard.preparing1');
+    else if (revealState === 'counting-2') title = t('dashboard.preparing2');
+    else if (revealState === 'counting-3') title = t('dashboard.preparing3');
+    else if (revealState.startsWith('counting-honorable')) title = (t('dashboard.preparingHonorable') as string) || 'PREPARING HONORABLE MENTIONS';
+
+    return (
+      <div className="countdown-screen-grand">
+        <div className="countdown-rings">
+          <div className="ring ring-1"></div>
+          <div className="ring ring-2"></div>
+          <div className="ring ring-3"></div>
+        </div>
+        <div className="countdown-content">
+          <h2 className="countdown-title">{title}</h2>
+          <div key={countdown} className="countdown-number-grand">{countdown}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (revealState.startsWith('revealed-honorable')) {
+    const revealedCountStr = revealState.replace('revealed-honorable-', '');
+    const revealedCount = parseInt(revealedCountStr || '0', 10);
+    
+    // We reveal from the bottom up. 
+    // revealedCount = 0 means only the lowest rank is visible (index: consolation.length - 1)
+    // revealedCount = X means X+1 items from the bottom are visible.
+    const visibleIndexStart = Math.max(0, consolation.length - 1 - revealedCount);
+
     return (
       <div 
         className="results-container animate-fade-in" 
@@ -241,22 +270,39 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         </h2>
         
         {consolation.length > 0 ? (
-          <div className="animate-slide-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', width: '90%', maxWidth: '1000px', maxHeight: '60vh', overflowY: 'auto', padding: '20px' }}>
-             {consolation.map((project, index) => (
-                <div key={project.id} style={{ backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                    <div style={{ width: '40px', height: '40px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px', flexShrink: 0 }}>
-                      {index + 4}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: '18px' }}>{project.team}</div>
-                      <div style={{ fontSize: '14px', opacity: 0.8 }}>{project.name}</div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--green)' }}>{project.totalScore.toFixed(2)}</div>
-                      <div style={{ fontSize: '10px', opacity: 0.6, textTransform: 'uppercase', fontWeight: 700 }}>PTS</div>
-                    </div>
-                </div>
-             ))}
+          <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '90%', maxWidth: '850px', maxHeight: '60vh', overflowY: 'auto', padding: '10px 20px', alignContent: 'center', scrollbarWidth: 'none' }}>
+             {consolation.map((project, index) => {
+                const isVisible = index >= visibleIndexStart;
+                
+                return (
+                  <div key={project.id} id={`honorable-card-${index}`} style={{ 
+                    background: isVisible ? 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)' : 'rgba(255,255,255,0.02)', 
+                    backdropFilter: isVisible ? 'blur(20px)' : 'none', 
+                    border: isVisible ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.05)', 
+                    borderRadius: '24px', 
+                    padding: '24px 32px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '24px', 
+                    boxShadow: isVisible ? '0 12px 40px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)' : 'none',
+                    transition: 'all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    opacity: isVisible ? 1 : 0.4,
+                    transform: isVisible ? 'scale(1) translateX(0)' : 'scale(0.95) translateX(-20px)'
+                  }}>
+                      <div style={{ width: '64px', height: '64px', background: isVisible ? 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)' : 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '28px', flexShrink: 0, color: isVisible ? 'white' : 'rgba(255,255,255,0.2)', transition: 'all 0.7s ease', border: isVisible ? '2px solid rgba(255,255,255,0.5)' : 'none', boxShadow: isVisible ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
+                        {index + 4}
+                      </div>
+                      <div style={{ flex: 1, borderLeft: isVisible ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent', paddingLeft: '24px', transition: 'all 0.7s ease' }}>
+                        <div style={{ fontWeight: 800, fontSize: '26px', color: isVisible ? 'white' : 'rgba(255,255,255,0.15)', transition: 'color 0.7s ease', letterSpacing: '0.02em', textShadow: isVisible ? '0 2px 4px rgba(0,0,0,0.3)' : 'none' }}>{isVisible ? project.team : '??????????'}</div>
+                        <div style={{ fontSize: '18px', color: isVisible ? 'rgba(255,255,255,0.9)' : 'transparent', transition: 'color 0.7s ease', marginTop: '4px', fontWeight: 500 }}>{isVisible ? project.name : '???'}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: '24px' }}>
+                        <div style={{ fontSize: '36px', fontWeight: 900, color: isVisible ? '#4ade80' : 'transparent', transition: 'color 0.7s ease', textShadow: isVisible ? '0 2px 10px rgba(74, 222, 128, 0.3)' : 'none', lineHeight: 1 }}>{isVisible ? project.totalScore.toFixed(2) : '00.00'}</div>
+                        <div style={{ fontSize: '14px', color: isVisible ? 'rgba(255,255,255,0.7)' : 'transparent', textTransform: 'uppercase', fontWeight: 800, transition: 'color 0.7s ease', letterSpacing: '0.1em', marginTop: '4px' }}>{isVisible ? 'PTS' : ''}</div>
+                      </div>
+                  </div>
+                );
+             })}
           </div>
         ) : (
           <p style={{ fontSize: '24px', color: 'rgba(255,255,255,0.5)' }}>{t('dashboard.noProject')}</p>
@@ -264,7 +310,16 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
 
         <button
           className="animate-fade-in"
-          onClick={() => startCountdown(3)}
+          onClick={() => {
+            if (revealedCount < consolation.length - 1) {
+              // Play sound effect and show next one
+              applauseAudio.currentTime = 0;
+              applauseAudio.play().catch(e => console.error("Audio play failed", e));
+              setRevealState(`revealed-honorable-${revealedCount + 1}` as RevealState);
+            } else {
+              startCountdown(3);
+            }
+          }}
           style={{ marginTop: '40px', padding: '18px 56px', fontSize: '22px', fontWeight: 700, letterSpacing: '0.05em', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '40px', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', animationDelay: '1.5s' }}
           onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(255,255,255,0.2)`; }}
           onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'; }}
