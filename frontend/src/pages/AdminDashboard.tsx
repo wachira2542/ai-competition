@@ -96,9 +96,25 @@ export default function AdminDashboard() {
       {dashboardState !== 'idle' && (
         <button 
           onClick={() => setResetTrigger(prev => prev + 1)}
-          style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 1000, padding: '12px 24px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '30px', cursor: 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', transition: 'all 0.3s' }}
-          onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; }}
+          style={{ 
+            position: 'fixed', top: '24px', right: '24px', zIndex: 1000, padding: '12px 24px', 
+            backgroundColor: dashboardState === 'revealed' ? 'var(--navy)' : 'rgba(255,255,255,0.1)', 
+            backdropFilter: 'blur(10px)', 
+            color: 'white', 
+            border: dashboardState === 'revealed' ? 'none' : '1px solid rgba(255,255,255,0.3)', 
+            borderRadius: '30px', cursor: 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)', transition: 'all 0.3s' 
+          }}
+          onMouseOver={(e) => { 
+            e.currentTarget.style.transform = 'translateY(-2px)'; 
+            e.currentTarget.style.backgroundColor = dashboardState === 'revealed' ? 'var(--black)' : 'rgba(255,255,255,0.2)'; 
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; 
+          }}
+          onMouseOut={(e) => { 
+            e.currentTarget.style.transform = 'translateY(0)'; 
+            e.currentTarget.style.backgroundColor = dashboardState === 'revealed' ? 'var(--navy)' : 'rgba(255,255,255,0.1)'; 
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; 
+          }}
         >
           🔄 {t('admin.backToMain')}
         </button>
