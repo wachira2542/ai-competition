@@ -158,7 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         </div>
         <button
           id="reveal-btn"
-          onClick={() => startCountdown(1)}
+          onClick={() => startCountdown(3)}
           disabled={evaluatedCount === 0}
           className={`reveal-btn ${evaluatedCount === 0 ? 'reveal-btn--disabled' : 'reveal-btn--active'}`}
           style={{ marginTop: '16px' }}
@@ -292,15 +292,15 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, evaluations, onRevealCh
         <button
           className="animate-fade-in"
           onClick={() => {
-            if (rankIndex === 0) startCountdown(2);
-            else if (rankIndex === 1) startCountdown(3);
+            if (rankIndex === 2) startCountdown(2);
+            else if (rankIndex === 1) startCountdown(1);
             else setRevealState('revealed');
           }}
           style={{ marginTop: '60px', padding: '18px 56px', fontSize: '22px', fontWeight: 700, letterSpacing: '0.05em', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '40px', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', animationDelay: '2s' }}
           onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = `0 12px 40px ${meta.iconColor}40`; }}
           onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'; }}
         >
-          {rankIndex === 2 ? t('dashboard.showAll') : t('dashboard.nextReveal')}
+          {rankIndex === 0 ? t('dashboard.showAll') : t('dashboard.nextReveal')}
         </button>
       </div>
     );
